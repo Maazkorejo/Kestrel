@@ -576,6 +576,44 @@ def predict(input_data):
     assert data["exploit_succeeded"] is False
 
 
+# 25. Extension Marketplace Search & Lifecycle
+def test_extension_marketplace_endpoints():
+    # 1. Search extensions (empty query returns rich curated list)
+    search_res = client.get("/api/extensions/search")
+    assert search_res.status_code == 200
+    search_data = search_res.json()
+    assert "results" in search_data
+    assert len(search_data["results"]) >= 10
+
+    # 2. Category search (Security category)
+    sec_res = client.get("/api/extensions/search?category=Security")
+    assert sec_res.status_code == 200
+    sec_data = sec_res.json()
+    assert len(sec_data["results"]) >= 5
+    assert any("YARA" in ext["name"] or "Snyk" in ext["name"] for ext in sec_data["results"])
+
+    # 3. Install extension
+    install_res = client.post("/api/extensions/install", json={
+        "id": "Semgrep.semgrep",
+        "name": "Semgrep Code Security",
+        "author": "Semgrep"
+    })
+    assert install_res.status_code == 200
+    assert install_res.json()["status"] in ("installed", "already_installed")
+
+    # 4. List installed extensions
+    inst_res = client.get("/api/extensions/installed")
+    assert inst_res.status_code == 200
+    installed_ids = [ext["id"] for ext in inst_res.json()["installed"]]
+    assert "Semgrep.semgrep" in installed_ids
+
+    # 5. Uninstall extension
+    uninst_res = client.post("/api/extensions/uninstall", json={"id": "Semgrep.semgrep"})
+    assert uninst_res.status_code == 200
+    assert uninst_res.json()["status"] == "uninstalled"
+
+
+
 
 
 

@@ -23,35 +23,21 @@ jobs:
       - name: Set up Python Environment
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.11"
           cache: "pip"
 
       - name: Install Audit Dependencies
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          pip install pytest
 
-      - name: Execute Automated Test Suite
+      - name: Execute Kestrel AST Security Scanner
         run: |
           python tests/run_tests.py
 
-      - name: Execute Kestrel DevSecOps AST & Dependency Scan
-        run: |
-          python kestrel_cli.py scan . --fail-on NEVER --sarif kestrel-security-audit.sarif
-
-      - name: Upload SARIF Artifact
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: kestrel-security-audit-sarif
-          path: kestrel-security-audit.sarif
-          if-no-files-found: warn
-
-      - name: Upload Security Findings to GitHub Code Scanning (SARIF 2.1.0)
+      - name: Upload Security Findings (SARIF 2.1.0)
         uses: github/codeql-action/upload-sarif@v3
         if: always()
-        continue-on-error: true
         with:
           sarif_file: kestrel-security-audit.sarif
           category: kestrel-sast

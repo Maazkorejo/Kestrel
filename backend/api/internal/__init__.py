@@ -1,6 +1,6 @@
 """
 Kestrel AI - Internal API Router Aggregator.
-Combines workspace, auth, git, search, terminal, settings, scanner, sandbox, and cicd routers.
+Combines workspace, auth, git, search, terminal, settings, scanner, sandbox, cicd, and extensions routers.
 """
 from fastapi import APIRouter
 
@@ -13,6 +13,7 @@ from .settings import router as settings_router
 from .scanner import router as scanner_router
 from .sandbox import router as sandbox_router
 from .cicd import router as cicd_router
+from .extensions import router as extensions_router
 
 router = APIRouter()
 
@@ -25,3 +26,4 @@ router.include_router(settings_router)
 router.include_router(scanner_router)
 router.include_router(sandbox_router)
 router.include_router(cicd_router)
+router.include_router(extensions_router)

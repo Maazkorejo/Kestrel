@@ -10,3 +10,4 @@ export * from './settings';
 export * from './scanner';
 export * from './sandbox';
 export * from './cicd';
+export * from './extensions';

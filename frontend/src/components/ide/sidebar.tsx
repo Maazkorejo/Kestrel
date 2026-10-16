@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   ChevronDown,
   ChevronRight,
@@ -24,12 +24,20 @@ import {
   ArrowUpRight,
   Play,
   FileCode2,
+  Loader2,
+  Globe,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { IconButton, FileIcon } from './controls';
 import { cn } from '@/lib/utils';
 import type { Finding } from './data';
+import {
+  searchExtensions,
+  installExtension,
+  uninstallExtension,
+  type ExtensionItem,
+} from '@/lib/api/internal';
 
 export type SidebarView =
   | 'Files'
@@ -77,6 +85,34 @@ export function PrimarySidebar({
   const [staged, setStaged] = useState<string[]>([]);
   const [committed, setCommitted] = useState(false);
   const [filter, setFilter] = useState('All');
+  const [extCategory, setExtCategory] = useState('Recommended');
+  const [extList, setExtList] = useState<ExtensionItem[]>([]);
+  const [extLoading, setExtLoading] = useState(false);
+  const [extSearch, setExtSearch] = useState('');
+
+  useEffect(() => {
+    if (view !== 'Extensions') return;
+    let active = true;
+    const timer = setTimeout(async () => {
+      setExtLoading(true);
+      try {
+        const catParam = extCategory === 'Recommended' || extCategory === 'Installed' ? '' : extCategory;
+        const resp = await searchExtensions(extSearch, catParam);
+        if (active && resp && Array.isArray(resp.results)) {
+          setExtList(resp.results);
+        }
+      } catch (err) {
+        console.warn('Failed to load extensions from API:', err);
+      } finally {
+        if (active) setExtLoading(false);
+      }
+    }, extSearch ? 300 : 0);
+
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [view, extCategory, extSearch]);
 
   const toggle = (folder: string) =>
     setExpanded(old => (old.includes(folder) ? old.filter(f => f !== folder) : [...old, folder]));
@@ -427,73 +463,135 @@ export function PrimarySidebar({
       {view === 'Extensions' && (
         <div className="p-3">
           <Input
-            placeholder="Search extensions"
-            aria-label="Search extensions"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
+            placeholder="Search extensions in Marketplace..."
+            aria-label="Search extensions in Marketplace"
+            value={extSearch}
+            onChange={e => setExtSearch(e.target.value)}
           />
-          <div className="micro-label my-4">RECOMMENDED FOR THIS WORKSPACE</div>
-          {[
-            {
-              name: 'Python',
-              author: 'Microsoft',
-              description: 'Python language support and debugging.',
-              icon: 'py',
-              rating: '4.8',
-              downloads: '142M',
-            },
-            {
-              name: 'YARA Rules',
-              author: 'Kestrel',
-              description: 'Threat detection rule syntax and validation.',
-              icon: 'Y',
-              rating: '4.9',
-              downloads: '18K',
-            },
-            {
-              name: 'Docker',
-              author: 'Microsoft',
-              description: 'Build and secure containerized applications.',
-              icon: '▤',
-              rating: '4.7',
-              downloads: '28M',
-            },
-            {
-              name: 'Sigma Rules',
-              author: 'Security Community',
-              description: 'Detection engineering for SIEM platforms.',
-              icon: 'Σ',
-              rating: '4.8',
-              downloads: '42K',
-            },
-          ]
-            .filter(e => `${e.name} ${e.description}`.toLowerCase().includes(search.toLowerCase()))
-            .map(e => (
-              <div className="extension-entry" key={e.name}>
-                <span className="extension-glyph">{e.icon}</span>
-                <div className="min-w-0 flex-1">
-                  <span className="font-medium">{e.name}</span>
-                  <div className="text-muted-foreground text-[11px] mt-1">{e.author}</div>
-                  <p className="text-xs text-muted-foreground my-2">{e.description}</p>
-                  <div className="flex text-[10px] text-muted-foreground items-center gap-2">
-                    <Star size={11} className="text-warning" />
-                    {e.rating}
-                    <Download size={11} />
-                    {e.downloads}
-                    <Button
-                      size="sm"
-                      variant={installed.includes(e.name) ? 'outline' : 'default'}
-                      className="ml-auto h-6 px-2 text-[11px]"
-                      onClick={() => toggleExtension(e.name)}
-                    >
-                      {installed.includes(e.name) ? 'Uninstall' : 'Install'}
-                    </Button>
-                  </div>
-                </div>
-              </div>
+
+          {/* Category filter pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto py-2.5 no-scrollbar">
+            {['Recommended', 'Security', 'Languages', 'Linters', 'Themes', 'Productivity', 'Installed'].map(cat => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setExtCategory(cat)}
+                className={cn(
+                  'px-2.5 py-1 text-[11px] rounded-full font-medium whitespace-nowrap transition-all',
+                  extCategory === cat
+                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                    : 'bg-[#18181b] text-zinc-400 hover:text-zinc-200 border border-zinc-800'
+                )}
+              >
+                {cat}
+              </button>
             ))}
-          <p className="text-[10px] text-muted-foreground mt-4">
-            Kestrel extensions integration enabled.
+          </div>
+
+          {/* Subheader status bar */}
+          <div className="flex items-center justify-between my-2 text-[11px] text-muted-foreground border-b border-border/40 pb-1.5">
+            <span className="font-mono uppercase tracking-wider text-[10px]">
+              {extCategory === 'Installed'
+                ? `INSTALLED (${extList.filter(e => installed.includes(e.name) || installed.includes(e.id)).length})`
+                : extSearch
+                ? `RESULTS (${extList.length})`
+                : `${extCategory.toUpperCase()} (${extList.length})`}
+            </span>
+            <span className="text-[10px] text-zinc-500 flex items-center gap-1">
+              <Globe size={11} className="text-emerald-500" />
+              Open VSX Registry
+            </span>
+          </div>
+
+          {extLoading && (
+            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground text-xs gap-2">
+              <Loader2 className="w-5 h-5 animate-spin text-emerald-500" />
+              <span>Fetching extensions from Open VSX...</span>
+            </div>
+          )}
+
+          {!extLoading &&
+            extList
+              .filter(e => {
+                if (extCategory === 'Installed') {
+                  return installed.includes(e.name) || installed.includes(e.id);
+                }
+                return true;
+              })
+              .map(e => {
+                const isInstalled = installed.includes(e.name) || installed.includes(e.id);
+                return (
+                  <div className="extension-entry" key={e.id || e.name}>
+                    <span className="extension-glyph flex items-center justify-center font-bold text-xs bg-zinc-800/80 rounded border border-zinc-700/50">
+                      {e.icon}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="font-medium text-xs truncate">{e.name}</span>
+                        <span className="text-[10px] font-mono text-zinc-500">{e.version}</span>
+                      </div>
+                      <div className="text-muted-foreground text-[11px] mt-0.5 truncate flex items-center gap-1">
+                        <span>{e.author}</span>
+                        {e.author === 'Microsoft' || e.author.includes('Kestrel') ? (
+                          <Check size={10} className="text-emerald-400" />
+                        ) : null}
+                      </div>
+                      <p className="text-xs text-muted-foreground my-1.5 line-clamp-2 leading-relaxed">
+                        {e.description}
+                      </p>
+                      <div className="flex text-[10px] text-muted-foreground items-center gap-2 mt-1">
+                        <span className="flex items-center gap-0.5">
+                          <Star size={11} className="text-amber-400 fill-amber-400" />
+                          {e.rating}
+                        </span>
+                        <span className="flex items-center gap-0.5 text-zinc-500">
+                          <Download size={11} />
+                          {e.downloads}
+                        </span>
+                        <Button
+                          size="sm"
+                          variant={isInstalled ? 'outline' : 'default'}
+                          className={cn(
+                            'ml-auto h-6 px-2.5 text-[11px] font-medium transition-all',
+                            isInstalled
+                              ? 'border-zinc-700 text-zinc-300 hover:bg-destructive/15 hover:text-destructive hover:border-destructive/40'
+                              : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm'
+                          )}
+                          onClick={() => {
+                            toggleExtension(e.name);
+                            if (isInstalled) {
+                              uninstallExtension(e.id).catch(() => {});
+                            } else {
+                              installExtension(e).catch(() => {});
+                            }
+                          }}
+                        >
+                          {isInstalled ? 'Uninstall' : 'Install'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+          {!extLoading &&
+            extList.filter(e => {
+              if (extCategory === 'Installed') {
+                return installed.includes(e.name) || installed.includes(e.id);
+              }
+              return true;
+            }).length === 0 && (
+              <div className="py-8 text-center text-xs text-muted-foreground">
+                <Package className="w-8 h-8 mx-auto mb-2 text-zinc-600" />
+                <p>No extensions found.</p>
+                <p className="text-[10px] text-zinc-500 mt-1">
+                  Try searching for python, rust, docker, theme, or security.
+                </p>
+              </div>
+            )}
+
+          <p className="text-[10px] text-muted-foreground mt-4 text-center">
+            Connected to Open VSX Registry. Tens of thousands of extensions supported.
           </p>
         </div>
       )}

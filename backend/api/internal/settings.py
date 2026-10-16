@@ -56,27 +56,3 @@ async def save_settings_endpoint(payload: Dict[str, Any]):
         os.environ["OFFLINE_MODE"] = "true" if payload["offline_mode"] else "false"
 
     return {"status": "ok", "message": "Settings updated successfully."}
-
-
-@router.get("/extensions/search")
-async def search_extensions_endpoint(q: str = ""):
-    """Searches real VS Code extensions from Open VSX Registry / Curated Cyber Catalog."""
-    return await asyncio.to_thread(search_marketplace, q)
-
-
-@router.post("/extensions/install")
-async def install_extension_endpoint(payload: Dict[str, Any]):
-    """Installs an extension into the active IDE workspace."""
-    ext_id = payload.get("id")
-    if not ext_id:
-        raise HTTPException(status_code=400, detail="Missing extension ID")
-    return install_extension(ext_id, payload)
-
-
-@router.post("/extensions/uninstall")
-async def uninstall_extension_endpoint(payload: Dict[str, Any]):
-    """Uninstalls an extension from the active IDE workspace."""
-    ext_id = payload.get("id")
-    if not ext_id:
-        raise HTTPException(status_code=400, detail="Missing extension ID")
-    return uninstall_extension(ext_id)

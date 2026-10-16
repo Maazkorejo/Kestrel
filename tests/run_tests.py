@@ -46,7 +46,8 @@ from tests.test_kestrel_core import (
     test_ask_ai_vulnerability_and_guardrails,
     test_simulator_scenarios_catalog,
     test_simulator_command_injection_detection,
-    test_simulator_defended_code_validation
+    test_simulator_defended_code_validation,
+    test_extension_marketplace_endpoints
 )
 
 tests = [
@@ -88,6 +89,7 @@ tests = [
     ("Attack Simulator Scenarios Catalog", test_simulator_scenarios_catalog),
     ("Attack Simulator Command Injection Execution", test_simulator_command_injection_detection),
     ("Attack Simulator Defended Code Validation", test_simulator_defended_code_validation),
+    ("Extension Marketplace Lifecycle", test_extension_marketplace_endpoints),
 ]
 
 def main():
