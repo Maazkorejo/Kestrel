@@ -12,6 +12,25 @@
 
 ---
 
+## Download Kestrel AI
+
+[![Download for Windows](https://img.shields.io/badge/Download-Kestrel%20Installer%20(.exe)-blue?style=for-the-badge&logo=windows)](https://github.com/Maazkorejo/Kestrel/releases/latest/download/Kestrel-Setup-1.0.0.exe)
+[![Download Portable Edition](https://img.shields.io/badge/Download-Portable%20Edition-green?style=for-the-badge&logo=windows)](https://github.com/Maazkorejo/Kestrel/releases/latest/download/Kestrel-1.0.0.exe)
+[![GitHub Releases](https://img.shields.io/badge/All-Releases-orange?style=for-the-badge&logo=github)](https://github.com/Maazkorejo/Kestrel/releases)
+
+### Quick Download Options
+
+| Edition | Format | Target Platform | Description |
+|---|---|---|---|
+| **Windows Setup** *(Recommended)* | `.exe` (NSIS) | Windows 10 / 11 (64-bit) | Standard installer wizard with automated Desktop icon and Start Menu shortcuts. |
+| **Windows Portable** | `.exe` | Windows 10 / 11 (64-bit) | Zero-install standalone executable. Double-click and run immediately without admin rights. |
+| **PowerShell One-Liner** | Script | Windows PowerShell | Run in terminal: `irm https://raw.githubusercontent.com/Maazkorejo/Kestrel/main/install.ps1 \| iex` |
+| **Source Repository** | Git | Cross-platform | `git clone https://github.com/Maazkorejo/Kestrel.git` |
+
+> **Note on Windows SmartScreen**: Because Kestrel is a community open-source release without an enterprise code-signing certificate, Windows Defender SmartScreen may display *"Windows protected your PC"*. Click **More info** -> **Run anyway** to launch. All binary releases are transparently built from open-source code via GitHub Actions CI.
+
+---
+
 ## Overview
 
 Modern software development and cybersecurity workflows are disjointed. Developers write code in IDEs, run disparate CLI scanners in separate terminal sessions, manually search CVE databases across browser tabs, and paste sensitive code snippets into generic AI chatbots that hallucinate false vulnerabilities.

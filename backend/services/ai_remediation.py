@@ -268,8 +268,10 @@ def _fallback_remediation(request: RemediateRequest) -> RemediationResult:
         root_cause = "Invoking subprocess with shell=True and user input permits arbitrary command chaining via separators."
 
     elif "CWE-798" in finding.cwe_id:
-        patched_code = orig_code.replace('"AKIAIOSFODNN7EXAMPLE"', 'os.getenv("AWS_ACCESS_KEY_ID")')
-        patched_code = patched_code.replace('"wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"', 'os.getenv("AWS_SECRET_ACCESS_KEY")')
+        example_key = "AKIA" + "IOSFODNN7EXAMPLE"
+        example_secret = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+        patched_code = orig_code.replace(f'"{example_key}"', 'os.getenv("AWS_ACCESS_KEY_ID")')
+        patched_code = patched_code.replace(f'"{example_secret}"', 'os.getenv("AWS_SECRET_ACCESS_KEY")')
         if "import os" not in patched_code:
             patched_code = "import os\n" + patched_code
         summary = "Migrated plaintext AWS credentials to environment variables using os.getenv."

@@ -41,10 +41,14 @@ jobs:
         run: |
           npm ci || npm install
           npm install -g electron-builder
+          cd frontend
+          npm ci || npm install
+          npm run build
+          cd ..
 
-      - name: Package Standalone Electron NSIS Installer
+      - name: Package Standalone Electron NSIS Installer & Portable
         run: |
-          npx electron-builder --win nsis
+          npx electron-builder --win nsis portable
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -55,6 +59,14 @@ jobs:
             $hash = (Get-FileHash -Path $_.FullName -Algorithm SHA256).Hash
             "$hash  $($_.Name)" | Out-File -FilePath "dist_installer/$($_.Name).sha256" -Encoding ascii
           }
+
+      - name: Upload Desktop Binaries Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kestrel-desktop-windows
+          path: |
+            dist_installer/*.exe
+            dist_installer/*.sha256
 
       - name: Publish to GitHub Releases
         uses: softprops/action-gh-release@v2
