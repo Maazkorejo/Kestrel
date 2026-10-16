@@ -28,9 +28,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt pyinstaller
 
-      - name: Compile Standalone Backend Engine (secstudio-core.exe)
+      - name: Compile Standalone Backend Engine (kestrel-core.exe)
         run: |
-          pyinstaller secstudio_core.spec --distpath dist_backend --noconfirm
+          pyinstaller kestrel_core.spec --distpath dist_backend --noconfirm
 
       - name: Set up Node.js 20
         uses: actions/setup-node@v4
@@ -60,7 +60,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: SentinelCode Studio Release ${{ github.ref_name }}
+          name: Kestrel AI Release ${{ github.ref_name }}
           draft: false
           prerelease: false
           generate_release_notes: true
