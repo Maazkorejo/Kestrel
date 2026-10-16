@@ -1,0 +1,65 @@
+{
+  "name": "kestrel-ai",
+  "version": "1.0.0",
+  "description": "Kestrel - Hunt flaws. Ship armor.",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:engine": "pyinstaller kestrel_core.spec --distpath dist_backend",
+    "build:frontend": "cd frontend && npm run build",
+    "build:installer": "electron-builder --win",
+    "dist": "npm run build:engine && npm run build:frontend && npm run build:installer"
+  },
+  "keywords": [
+    "cybersecurity",
+    "ide",
+    "monaco",
+    "ai",
+    "nemotron"
+  ],
+  "author": "Maaz Korejo",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.kestrel.ai",
+    "productName": "Kestrel",
+    "directories": {
+      "output": "dist_installer"
+    },
+    "win": {
+      "icon": "electron/assets/icon.ico",
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Kestrel"
+    },
+    "files": [
+      "electron/**/*",
+      "backend/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "dist_backend",
+        "to": ".",
+        "filter": [
+          "*.exe"
+        ]
+      },
+      {
+        "from": "frontend/.output",
+        "to": "frontend/.output"
+      }
+    ]
+  }
+}
