@@ -1,13 +1,15 @@
 # Security Scenarios & Demo Presets Specification
 
-## Project: SecStudio AI (AI-Native Cybersecurity IDE)
+## Project: Kestrel AI (AI-Native Cybersecurity IDE)
+**Tagline:** Hunt flaws. Ship armor.
 
 ---
 
 ## 1. Overview
-This document specifies the four core vulnerability presets bundled into SecStudio AI. These scenarios serve two purposes:
-1. **Automated Integration Testing:** Validating that deterministic scanners, Tavily CVE lookups, and Nemotron patch generation operate end-to-end without regressions.
-2. **Hackathon Demonstration:** Providing flawless, instant presets that demonstrate the IDE capabilities during the 3-minute video presentation.
+This document specifies the four core vulnerability presets bundled into Kestrel AI. These scenarios serve three purposes:
+1. **Automated Integration Testing:** Validating that deterministic AST scanners, Tavily CVE lookups, Nemotron patch generation, and Docker sandbox execution operate end-to-end without regressions.
+2. **Exploit Sandbox Verification:** Demonstrating live proof-of-concept verification inside isolated Docker containers before and after patch application.
+3. **Hackathon Demonstration:** Providing instant presets that demonstrate the IDE capabilities during evaluation and video walkthroughs.
 
 ---
 
@@ -58,6 +60,10 @@ def login():
 * **Query:** `"CWE-89 SQL injection sqlite python parameterization mitigation"`
 * **Expected Output:** Reference to parameterized query advisories, SQL injection bypass risks, and best practices using placeholder tuples.
 
+### Docker Sandbox Exploit Verification:
+* **Pre-patch Exploit Test:** Payload `admin' --` bypasses authentication and returns admin session. Result: `EXPLOIT SUCCESSFUL (VULNERABLE)`.
+* **Post-patch Exploit Test:** Payload `admin' --` treated as literal string. Query returns 401 unauthorized. Result: `EXPLOIT NEUTRALIZED (SECURE)`.
+
 ### Verified Secure Patch:
 ```python
     # SECURE: Parameterized SQL query prevents injection attacks
@@ -102,6 +108,9 @@ def backup_file(local_path: str, remote_key: str):
 ### Tavily Threat Intel Query:
 * **Query:** `"CWE-798 hardcoded credentials AWS secrets management environment variables"`
 * **Expected Output:** AWS security advisories detailing automated GitHub scrapers scanning for leaked AKIA keys within seconds, recommending IAM roles or environment variables.
+
+### Redaction & Sanitization:
+* Before dispatch to Nemotron, keys are automatically replaced with `[REDACTED_AWS_KEY]`.
 
 ### Verified Secure Patch:
 ```python
@@ -155,6 +164,10 @@ def ping_host():
 ### Tavily Threat Intel Query:
 * **Query:** `"CWE-78 OS command injection python subprocess shell true remediation"`
 * **Expected Output:** Documentation explaining shell argument injection and the requirement to pass arguments as a list with `shell=False` and strict host validation.
+
+### Docker Sandbox Exploit Verification:
+* **Pre-patch Exploit Test:** Request `host=127.0.0.1; id`. Output returns `uid=0(root) gid=0(root)`. Result: `EXPLOIT SUCCESSFUL (RCE CONFIRMED)`.
+* **Post-patch Exploit Test:** Request `host=127.0.0.1; id`. Output returns 400 Bad Request: `Invalid host parameter`. Result: `EXPLOIT BLOCKED (SECURE)`.
 
 ### Verified Secure Patch:
 ```python

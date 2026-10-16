@@ -159,7 +159,15 @@ Available commands:
         return TerminalResponse(output="__CLEAR__", exit_code=0)
 
     else:
-        # Execute real shell command inside the active workspace directory
+        # Safeguard: Restrict arbitrary host execution to safe developer utilities
+        SAFE_COMMANDS = {"git", "npm", "python", "node", "pip", "pytest", "echo", "pwd", "whoami"}
+        if cmd not in SAFE_COMMANDS:
+            return TerminalResponse(
+                output=f"kestrel: command not found: {cmd}\nType 'help' for available security commands.\n",
+                exit_code=127
+            )
+
+        # Execute safe developer utility inside the active workspace directory
         try:
             active_dir = str(get_active_workspace())
             proc = await asyncio.to_thread(

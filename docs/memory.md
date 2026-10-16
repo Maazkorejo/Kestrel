@@ -1,30 +1,34 @@
 # Project Context & Persistent Memory
 
-## Project: SecStudio AI (AI-Native Cybersecurity IDE)
-* **Date Initialized:** October 2, 2026
-* **Target Competition:** Nebius x NVIDIA Global AI Hackathon
+## Project: Kestrel AI (AI-Native Cybersecurity IDE)
+* **Tagline:** Hunt flaws. Ship armor.
+* **Target:** Production AI-Native Cybersecurity Studio & Desktop IDE
 * **Workspace Path:** `C:\Users\maazk\Desktop\Nvidia hackathon`
+* **Repository:** `https://github.com/Maazkorejo/Kestrel.git`
 
 ---
 
-## 1. Verified Infrastructure & Credentials Status
+## 1. Verified Infrastructure & Services Status
 
 * **Model Provider:** OpenRouter API (`https://openrouter.ai/api/v1`)
-* **Active LLM Model:** `nvidia/nemotron-3.5-lightning:free`
-* **Status:** Verified working with valid test response.
-* **Search Engine:** Tavily Search API
-* **Status:** Verified working with live web search results.
-* **Python Environment:** `C:\Users\maazk\Desktop\Nvidia hackathon\venv\Scripts\python.exe`
-* **Local Test Script:** `test_connection.py` confirmed 100 percent operational.
+* **Primary LLM:** `nvidia/nemotron-3.5-lightning:free` (Fast reasoning & code patch synthesis)
+* **Advanced LLM:** `nvidia/nemotron-4-340b` (Deep threat modeling & STRIDE classification)
+* **Intelligence Search:** Tavily Live Search API (Real-time CVE advisories, NVD bulletins, mitigation feeds)
+* **Execution Sandbox:** Docker Engine API (Isolated containers with CPU/memory limits and network containment)
+* **Test Suite:** 40/40 unit and integration tests passing (`pytest tests/`)
+* **Local Python Environment:** `C:\Users\maazk\Desktop\Nvidia hackathon\venv\Scripts\python.exe`
 
 ---
 
 ## 2. Key Architecture Decisions & Constraints
 
-* **Defensive Focus:** The platform is strictly designed for defensive security auditing, vulnerability explanation, threat intelligence lookup, and automated patching. No offensive exploit generation or attacking capabilities will be built.
-* **Zero Hallucination Protocol:** Deterministic static analysis tools (Bandit, AST parsers, regex scanners) identify vulnerabilities first. The LLM is only utilized for reasoning, threat synthesis, and patch generation on verified findings.
-* **Ground Truth Retrieval:** Tavily is used to pull real-time CVE advisories and official security bulletins from NVD and MITRE.
-* **Editor Integration:** Monaco Editor is used as the core code editing component to provide authentic VS Code ergonomics in the browser.
+* **Strict Defensive Focus:** Kestrel AI is purpose-built for defensive security auditing, root-cause explanation, real-time threat intelligence lookup, and automated remediation. Proof-of-concept exploits in the sandbox are strictly ephemeral, non-destructive, and executed inside contained throwaway Docker sandboxes.
+* **Zero Hallucination Protocol:** Deterministic static analysis tools (Bandit AST, Tree-Sitter parsers, and custom regex scanners) identify vulnerabilities first. NVIDIA Nemotron is only invoked to reason about verified findings, synthesize patches, and structure threat model trees.
+* **Modular API Separation:** The backend endpoints are cleanly decoupled into:
+  * `backend/api/internal/`: Desktop file system access, terminal processes, and authentication.
+  * `backend/api/external/`: Security auditing, Nemotron reasoning, Tavily intelligence, Docker sandbox execution, and CI/CD workflow synthesis.
+* **Real-time Disk Synchronization:** When patches are applied from the Monaco UI, changes are immediately written to disk and verified against the local workspace.
+* **No Em Dashes or En Dashes:** Coding standards and documentation strictly use hyphens `-` or colons/parentheses.
 
 ---
 
@@ -35,23 +39,34 @@ Nvidia hackathon/
 ├── docs/
 │   ├── PRD.md              # Product requirements & user stories
 │   ├── architecture.md     # System design & API specifications
+│   ├── api_spec.md         # Full OpenAPI and REST contracts
 │   ├── rules.md            # Coding standards & security rules
 │   ├── design.md           # UI/UX design & Monaco editor specs
 │   ├── tasks.md            # Phased task checklist
-│   └── memory.md           # Persistent context & status
+│   ├── memory.md           # Persistent context & status
+│   ├── scenarios.md        # Benchmark vulnerability scenarios
+│   ├── security.md         # Zero-retention & sandbox security model
+│   └── demo_script.md      # 3-minute video recording walkthrough
 ├── backend/
 │   ├── main.py             # FastAPI entrypoint
-│   ├── analyzers/          # Deterministic static analysis engines
-│   └── services/           # Tavily and Nemotron clients
-├── frontend/               # Vite + React + Monaco Editor
-├── venv/                   # Python virtual environment
-├── .env                    # Secure local API keys
-└── test_connection.py      # Connection test script
+│   ├── config.py           # Settings and environment validation
+│   ├── api/
+│   │   ├── internal/       # Filesystem, terminal, OAuth routes
+│   │   └── external/       # Audit, sandbox, threat intelligence, CI/CD routes
+│   ├── analyzers/          # AST, Bandit, Regex, Dockerfile analyzers
+│   ├── services/           # Tavily, Nemotron, Docker sandbox clients
+│   └── models/             # Pydantic schemas and request/response models
+├── frontend/               # React, Vite, Tailwind CSS, Monaco Editor
+├── tests/                  # 40/40 automated test suite
+├── desktop/                # Desktop launcher, icon, and packaging scripts
+└── venv/                   # Python virtual environment
 ```
 
 ---
 
-## 4. Current State & Next Steps
+## 4. Current State & Milestones Completed
 
-* **Current Status:** Documentation suite complete and aligned with hackathon criteria.
-* **Immediate Next Action:** Initialize `backend/` and `frontend/` directories following `tasks.md` Phase 1.
+* **Audit & Refactor:** Legacy names (SentinelCode, SecStudio) fully replaced by Kestrel AI.
+* **API Modernization:** Subfolder structure (`backend/api/internal` and `backend/api/external`) operational and imported via modular FastAPI routers.
+* **Authentication:** Google OAuth, GitHub OAuth, and local credentials flow configured cleanly.
+* **Verification:** Full test suite verified with 100 percent pass rate across analyzers, sandbox, threat models, and endpoints.
