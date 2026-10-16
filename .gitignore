@@ -1,0 +1,35 @@
+# Environments
+venv/
+.venv/
+env/
+
+# API keys & secrets
+.env
+*.key
+*.pem
+
+# Python
+__pycache__/
+*.py[cod]
+*.class
+*.so
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Node & Electron
+node_modules/
+dist/
+build/
+dist_installer/
+dist_backend/
+package-lock.json
+*.exe
+
+# Test outputs & local databases
+*.sarif
+*.db
+
