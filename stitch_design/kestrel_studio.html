@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SentinelCode Studio - Cybersecurity IDE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg-app: #0B0B0D;
+      --surface: #111114;
+      --surface-raised: #17171B;
+      --hover: #1C1C21;
+      --selected-row: #1E1E24;
+      --selected-focused: rgba(59, 130, 246, 0.15);
+      --border: #212126;
+      --border-strong: #2E2E36;
+      --text-primary: #F2F2F4;
+      --text-secondary: #A0A0AB;
+      --text-muted: #6B6B76;
+      --accent: #3B82F6;
+      --accent-muted: rgba(59, 130, 246, 0.2);
+      
+      --severity-crit: #EF4444;
+      --severity-crit-bg: rgba(239, 68, 68, 0.12);
+      --severity-crit-border: rgba(239, 68, 68, 0.28);
+      
+      --severity-warn: #F59E0B;
+      --severity-warn-bg: rgba(245, 158, 11, 0.12);
+      --severity-warn-border: rgba(245, 158, 11, 0.28);
+      
+      --severity-info: #3B82F6;
+      --severity-info-bg: rgba(59, 130, 246, 0.12);
+      --severity-info-border: rgba(59, 130, 246, 0.28);
+      
+      --severity-succ: #22C55E;
+      --severity-succ-bg: rgba(34, 197, 94, 0.12);
+      --severity-succ-border: rgba(34, 197, 94, 0.28);
+      
+      --editor-selection: rgba(59, 130, 246, 0.2);
+      --editor-current-line: rgba(255, 255, 255, 0.035);
+      --indent-guide: #26262C;
+      --indent-guide-active: #3E3E4A;
+      
+      /* Syntax Tokens */
+      --syn-keyword: #7AA2F7;
+      --syn-control: #BB9AF7;
+      --syn-string: #9ECE6A;
+      --syn-number: #FF9E64;
+      --syn-comment: #5C6370;
+      --syn-function: #E0AF68;
+      --syn-type: #2AC3DE;
+      --syn-variable: #C0CAF5;
+      --syn-operator: #89DDFF;
+      
+      /* Dimensions & Radii */
+      --radius-sm: 6px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-full: 9999px;
+      
+      --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    body {
+      font-family: var(--font-ui);
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-size: 13px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .font-code {
+      font-family: var(--font-code);
+      font-size: 13.5px;
+      line-height: 20px;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-strong);
+      border-radius: var(--radius-full);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3A3A44;
+    }
+
+    /* Blinking Caret */
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    .caret-blink {
+      animation: blink 1.06s infinite step-start;
+    }
+
+    /* Pulse Glow */
+    @keyframes statusPulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.6; }
+    }
+    .pulse-dot {
+      animation: statusPulse 2.5s infinite ease-in-out;
+    }
+
+    /* Focus Ring Helper */
+    .focus-ring:focus-visible, .focus-ring:focus {
+      outline: 1px solid rgba(59, 130, 246, 0.6);
+      outline-offset: -1px;
+    }
+
+    .glass-shadow {
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col overflow-hidden bg-[var(--bg-app)] text-[var(--text-primary)]">
+
+  <!-- ==================== 1. TITLE BAR (32px) ==================== -->
+  <header class="h-[32px] min-h-[32px] w-full flex items-center justify-between px-2 bg-[var(--bg-app)] border-b border-[var(--border)] text-[12px] text-[var(--text-secondary)] z-50">
+    <!-- Left: Brand + VS Code menus -->
+    <div class="flex items-center gap-1.5 h-full">
+      <div class="flex items-center gap-1.5 pr-2.5 mr-1 border-r border-[var(--border)]">
+        <svg class="w-4 h-4 text-[var(--accent)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L3 7v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V7l-9-5z" stroke="currentColor"/>
+          <path d="M9 12l2 2 4-4" stroke="#22C55E" stroke-width="2"/>
+        </svg>
+        <span class="font-semibold text-[var(--text-primary)] tracking-tight text-[11.5px]">SentinelCode</span>
+      </div>
+
+      <nav class="flex items-center text-[12px]">
+        <button class="px-2 py-0.5 rounded-[var(--radius-sm)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)] transition-colors">File</button>
+        <button class="px-2 py-0.5 rounded-[var(--radius-sm)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)] transition-colors">Edit</button>
+        <button class="px-2 py-0.5 rounded-[var(--radius-sm)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)] transition-colors">Selection</button>
+        <button class="px-2 py-0.5 rounded-[var(--radius-sm)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)] transition-colors">View</button>
+        <button class="px-2 py-0.5 rounded-[var(--radius-sm)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)] transition-colors">Go</button>
+        <button class="px-2 py-0.5 rounded-[var(--radius-sm)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)] transition-colors">Run</button>
+        <button class="px-2 py-0.5 rounded-[var(--radius-sm)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)] transition-colors">Terminal</button>
+        <button class="px-2 py-0.5 rounded-[var(--radius-sm)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)] transition-colors">Help</button>
+      </nav>
+    </div>
+
+    <!-- Center: Command Center Pill (~480px) -->
+    <div id="cmdCenterBtn" onclick="toggleCommandPalette(true)" class="cursor-pointer flex items-center justify-between w-[480px] max-w-[42vw] h-[22px] px-3 bg-[var(--surface-raised)] border border-[var(--border)] rounded-[var(--radius-full)] hover:border-[var(--border-strong)] hover:bg-[var(--hover)] transition-all text-[11.5px] text-[var(--text-muted)] group">
+      <div class="flex items-center gap-2 truncate">
+        <svg class="w-3.5 h-3.5 text-[var(--text-muted)] group-hover:text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8" stroke-width="2"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65" stroke-width="2"/>
+        </svg>
+        <span class="text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] font-medium truncate">red_team_titan</span>
+        <span class="text-[var(--border-strong)]">/</span>
+        <span class="truncate">buffer_overflow.py</span>
+      </div>
+      <div class="flex items-center gap-1 text-[10px] text-[var(--text-muted)]">
+        <kbd class="px-1.5 py-0.2 bg-[var(--bg-app)] border border-[var(--border)] rounded-[3px] font-code">Ctrl+P</kbd>
+      </div>
+    </div>
+
+    <!-- Right: Window controls + Layout layout buttons -->
+    <div class="flex items-center gap-2">
+      <!-- Layout icons -->
+      <div class="flex items-center gap-1 text-[var(--text-muted)] mr-2">
+        <button onclick="toggleSideBar()" title="Toggle Primary Side Bar (Ctrl+B)" class="p-1 rounded-[var(--radius-sm)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)]">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M2 3a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H2zm4 1v8H2V4h4zm1 8V4h7v8H7z"/>
+          </svg>
+        </button>
+        <button onclick="togglePanel()" title="Toggle Bottom Panel (Ctrl+J)" class="p-1 rounded-[var(--radius-sm)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)]">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M2 3a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H2zm0 1h12v5H2V4zm0 6h12v2H2v-2z"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Window controls (Min, Max, Close) -->
+      <div class="flex items-center -mr-2 h-full">
+        <button class="w-9 h-7 flex items-center justify-center hover:bg-[var(--hover)] text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12" stroke-width="2"/></svg>
+        </button>
+        <button class="w-9 h-7 flex items-center justify-center hover:bg-[var(--hover)] text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" stroke-width="2"/></svg>
+        </button>
+        <button class="w-9 h-7 flex items-center justify-center hover:bg-[#E81123] hover:text-white text-[var(--text-muted)] transition-colors">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke-width="2"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN WORKSPACE AREA ==================== -->
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- 2. ACTIVITY BAR (48px wide) -->
+    <aside class="w-[48px] min-w-[48px] h-full bg-[var(--bg-app)] border-r border-[var(--border)] flex flex-col justify-between items-center py-2 z-40">
+      <!-- Top Group -->
+      <div class="flex flex-col items-center gap-1 w-full">
+        <!-- Explorer (Active) -->
+        <button id="act-explorer" onclick="switchActivity('explorer')" title="Explorer (Ctrl+Shift+E)" class="activity-btn relative w-[42px] h-[42px] flex items-center justify-center rounded-[var(--radius-md)] bg-[var(--hover)] text-[var(--text-primary)]">
+          <span class="active-indicator absolute left-0 top-2 bottom-2 w-[2px] bg-[var(--accent)] rounded-r"></span>
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+          </svg>
+        </button>
+
+        <!-- Search -->
+        <button id="act-search" onclick="switchActivity('search')" title="Search (Ctrl+Shift+F)" class="activity-btn relative w-[42px] h-[42px] flex items-center justify-center rounded-[var(--radius-md)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--hover)] transition-colors">
+          <span class="active-indicator hidden absolute left-0 top-2 bottom-2 w-[2px] bg-[var(--accent)] rounded-r"></span>
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="7" stroke-width="1.6"/>
+            <line x1="21" y1="21" x2="16" y2="16" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </button>
+
+        <!-- Source Control -->
+        <button id="act-git" onclick="switchActivity('git')" title="Source Control (Ctrl+Shift+G)" class="activity-btn relative w-[42px] h-[42px] flex items-center justify-center rounded-[var(--radius-md)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--hover)] transition-colors">
+          <span class="active-indicator hidden absolute left-0 top-2 bottom-2 w-[2px] bg-[var(--accent)] rounded-r"></span>
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <circle cx="18" cy="18" r="3" stroke-width="1.6"/>
+            <circle cx="6" cy="6" r="3" stroke-width="1.6"/>
+            <path d="M6 9a9 9 0 009 9" stroke-width="1.6"/>
+          </svg>
+          <span class="absolute top-2 right-2 px-1 text-[9px] font-bold bg-[var(--accent)] text-white rounded-full">2</span>
+        </button>
+
+        <!-- Run & Debug -->
+        <button id="act-debug" onclick="switchActivity('debug')" title="Run & Debug" class="activity-btn relative w-[42px] h-[42px] flex items-center justify-center rounded-[var(--radius-md)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--hover)] transition-colors">
+          <span class="active-indicator hidden absolute left-0 top-2 bottom-2 w-[2px] bg-[var(--accent)] rounded-r"></span>
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <polygon points="5 3 19 12 5 21 5 3" stroke-width="1.6"/>
+          </svg>
+        </button>
+
+        <!-- Security: Scans -->
+        <button id="act-scans" onclick="switchActivity('scans')" title="Automated Security Scans" class="activity-btn relative w-[42px] h-[42px] flex items-center justify-center rounded-[var(--radius-md)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--hover)] transition-colors">
+          <span class="active-indicator hidden absolute left-0 top-2 bottom-2 w-[2px] bg-[var(--accent)] rounded-r"></span>
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9" stroke-width="1.6"/>
+            <path d="M12 3a9 9 0 019 9" stroke-width="1.6" stroke-linecap="round"/>
+            <circle cx="12" cy="12" r="3" stroke-width="1.6"/>
+          </svg>
+        </button>
+
+        <!-- Security: Vulnerabilities -->
+        <button id="act-vulns" onclick="switchActivity('vulns')" title="Vulnerabilities & SAST" class="activity-btn relative w-[42px] h-[42px] flex items-center justify-center rounded-[var(--radius-md)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--hover)] transition-colors">
+          <span class="active-indicator hidden absolute left-0 top-2 bottom-2 w-[2px] bg-[var(--accent)] rounded-r"></span>
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+          <span class="absolute top-2 right-2 px-1 text-[9px] font-bold bg-[var(--severity-crit)] text-white rounded-full">3</span>
+        </button>
+
+        <!-- Security: Network Map -->
+        <button id="act-net" onclick="switchActivity('net')" title="Target Infrastructure & Network Map" class="activity-btn relative w-[42px] h-[42px] flex items-center justify-center rounded-[var(--radius-md)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--hover)] transition-colors">
+          <span class="active-indicator hidden absolute left-0 top-2 bottom-2 w-[2px] bg-[var(--accent)] rounded-r"></span>
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <rect x="2" y="2" width="6" height="6" rx="1" stroke-width="1.6"/>
+            <rect x="16" y="2" width="6" height="6" rx="1" stroke-width="1.6"/>
+            <rect x="9" y="16" width="6" height="6" rx="1" stroke-width="1.6"/>
+            <path d="M5 8v3a2 2 0 002 2h5m0 0h5a2 2 0 002-2V8m-7 5v3" stroke-width="1.6"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Bottom Group -->
+      <div class="flex flex-col items-center gap-1 w-full">
+        <!-- Accounts -->
+        <button title="Red Team Operator (root@sentinel)" class="w-[42px] h-[42px] flex items-center justify-center rounded-[var(--radius-md)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--hover)] transition-colors">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+          </svg>
+        </button>
+        <!-- Settings -->
+        <button title="Settings (Ctrl+,)" class="w-[42px] h-[42px] flex items-center justify-center rounded-[var(--radius-md)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--hover)] transition-colors">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="3" stroke-width="1.6"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+          </svg>
+        </button>
+      </div>
+    </aside>
+
+    <!-- 3. SIDE BAR (280px default, resizable) -->
+    <div id="sideBar" class="w-[280px] min-w-[180px] max-w-[500px] h-full bg-[var(--surface)] border-r border-[var(--border)] flex flex-col relative select-none">
+      
+      <!-- Side Bar Header (35px) -->
+      <div class="h-[35px] min-h-[35px] px-3 flex items-center justify-between border-b border-[var(--border)]">
+        <span id="sideBarTitle" class="text-[11px] font-semibold tracking-wider text-[var(--text-secondary)] uppercase">EXPLORER</span>
+        <div class="flex items-center gap-1 text-[var(--text-muted)]">
+          <button class="p-1 rounded-[var(--radius-sm)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)]" title="New Exploit File">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-width="2"/></svg>
+          </button>
+          <button class="p-1 rounded-[var(--radius-sm)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)]" title="New Folder">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 13h6m-3-3v6m-9 3h18a2 2 0 002-2V7a2 2 0 00-2-2h-7l-2-2H3a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-width="1.8"/></svg>
+          </button>
+          <button class="p-1 rounded-[var(--radius-sm)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)]" title="More Actions...">
+            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 16 16"><circle cx="3" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="13" cy="8" r="1.5"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Side Bar Content Tree -->
+      <div id="sideBarContent" class="flex-1 overflow-y-auto overflow-x-hidden text-[13px] py-1">
+        
+        <!-- SECTION: OPEN EDITORS -->
+        <div class="collapsible-section mb-1">
+          <div onclick="toggleTreeSection('open-editors-tree')" class="flex items-center gap-1 px-3 py-1 cursor-pointer text-[11px] font-semibold text-[var(--text-secondary)] uppercase hover:text-[var(--text-primary)]">
+            <svg id="chevron-open-editors-tree" class="w-3.5 h-3.5 transform transition-transform" fill="currentColor" viewBox="0 0 16 16"><path d="M6 12l4-4-4-4v8z"/></svg>
+            <span>OPEN EDITORS</span>
+          </div>
+          <div id="open-editors-tree" class="flex flex-col">
+            <div onclick="openTab('buffer_overflow.py')" class="flex items-center justify-between px-6 py-0.5 hover:bg-[var(--hover)] cursor-pointer text-[var(--text-primary)] group rounded-[var(--radius-sm)] mx-1">
+              <div class="flex items-center gap-2 truncate">
+                <span class="text-[#38BDF8] text-[11px] font-mono">py</span>
+                <span class="truncate">buffer_overflow.py</span>
+              </div>
+              <span class="w-2 h-2 rounded-full bg-[var(--accent)] group-hover:hidden"></span>
+              <button class="hidden group-hover:block p-0.5 text-[var(--text-muted)] hover:text-white">✕</button>
+            </div>
+            <div onclick="openTab('findings_dashboard')" class="flex items-center justify-between px-6 py-0.5 hover:bg-[var(--hover)] cursor-pointer text-[var(--text-secondary)] group rounded-[var(--radius-sm)] mx-1">
+              <div class="flex items-center gap-2 truncate">
+                <svg class="w-3 h-3 text-[var(--severity-crit)]" fill="currentColor" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/></svg>
+                <span class="truncate">Findings Dashboard</span>
+              </div>
+              <button class="hidden group-hover:block p-0.5 text-[var(--text-muted)] hover:text-white">✕</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION: PROJECT TREE -->
+        <div class="collapsible-section mb-1">
+          <div onclick="toggleTreeSection('project-tree')" class="flex items-center gap-1 px-3 py-1 cursor-pointer text-[11px] font-semibold text-[var(--text-secondary)] uppercase hover:text-[var(--text-primary)]">
+            <svg id="chevron-project-tree" class="w-3.5 h-3.5 transform transition-transform rotate-90" fill="currentColor" viewBox="0 0 16 16"><path d="M6 12l4-4-4-4v8z"/></svg>
+            <span class="font-bold tracking-wider text-[var(--text-primary)]">RED_TEAM_PROJECT_TITAN</span>
+          </div>
+
+          <div id="project-tree" class="flex flex-col">
+            
+            <!-- Folder: targets/ -->
+            <div class="tree-item flex items-center gap-1.5 px-4 h-[24px] hover:bg-[var(--hover)] cursor-pointer text-[var(--text-secondary)] rounded-[var(--radius-sm)] mx-1" onclick="toggleSubFolder('f-targets')">
+              <svg id="chev-f-targets" class="w-3 h-3 text-[var(--text-muted)] transform rotate-90" fill="currentColor" viewBox="0 0 16 16"><path d="M6 12l4-4-4-4v8z"/></svg>
+              <svg class="w-4 h-4 text-[#EAB308]" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/></svg>
+              <span>targets</span>
+            </div>
+            <div id="f-targets" class="flex flex-col">
+              <div class="tree-item flex items-center justify-between pl-8 pr-3 h-[24px] hover:bg-[var(--hover)] cursor-pointer text-[var(--text-secondary)] rounded-[var(--radius-sm)] mx-1">
+                <div class="flex items-center gap-2 truncate">
+                  <span class="text-[#22C55E] text-[10px] font-mono">json</span>
+                  <span class="truncate">production_dmz.json</span>
+                </div>
+              </div>
+              <div class="tree-item flex items-center justify-between pl-8 pr-3 h-[24px] hover:bg-[var(--hover)] cursor-pointer text-[var(--text-secondary)] rounded-[var(--radius-sm)] mx-1">
+                <div class="flex items-center gap-2 truncate">
+                  <span class="text-[#A0A0AB] text-[10px] font-mono">txt</span>
+                  <span class="truncate">scope_ip_list.txt</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Folder: payloads/ (Open) -->
+            <div class="tree-item flex items-center gap-1.5 px-4 h-[24px] hover:bg-[var(--hover)] cursor-pointer text-[var(--text-secondary)] rounded-[var(--radius-sm)] mx-1" onclick="toggleSubFolder('f-payloads')">
+              <svg id="chev-f-payloads" class="w-3 h-3 text-[var(--text-muted)] transform rotate-90" fill="currentColor" viewBox="0 0 16 16"><path d="M6 12l4-4-4-4v8z"/></svg>
+              <svg class="w-4 h-4 text-[#EAB308]" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/></svg>
+              <span>payloads</span>
+            </div>
+            <div id="f-payloads" class="flex flex-col">
+              <!-- File 1: buffer_overflow.py (Selected) -->
+              <div onclick="openTab('buffer_overflow.py')" class="tree-item flex items-center justify-between pl-8 pr-3 h-[24px] bg-[var(--selected-row)] border-l-2 border-[var(--accent)] cursor-pointer text-[var(--text-primary)] rounded-[var(--radius-sm)] mx-1">
+                <div class="flex items-center gap-2 truncate">
+                  <span class="text-[#38BDF8] text-[11px] font-mono">py</span>
+                  <span class="truncate font-medium text-[#C0CAF5]">buffer_overflow.py</span>
+                </div>
+                <span class="text-[11px] font-semibold text-[#EAB308]">M</span>
+              </div>
+              <div onclick="openTab('reverse_tcp_shell.asm')" class="tree-item flex items-center justify-between pl-8 pr-3 h-[24px] hover:bg-[var(--hover)] cursor-pointer text-[var(--text-secondary)] rounded-[var(--radius-sm)] mx-1">
+                <div class="flex items-center gap-2 truncate">
+                  <span class="text-[#F43F5E] text-[10px] font-mono">asm</span>
+                  <span class="truncate">reverse_tcp_shell.asm</span>
+                </div>
+                <span class="text-[11px] font-semibold text-[#22C55E]">U</span>
+              </div>
+              <div onclick="openTab('web_sqli_tamper.js')" class="tree-item flex items-center justify-between pl-8 pr-3 h-[24px] hover:bg-[var(--hover)] cursor-pointer text-[var(--text-secondary)] rounded-[var(--radius-sm)] mx-1">
+                <div class="flex items-center gap-2 truncate">
+                  <span class="text-[#FBBF24] text-[10px] font-mono">js</span>
+                  <span class="truncate">web_sqli_tamper.js</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Folder: scans/ -->
+            <div class="tree-item flex items-center gap-1.5 px-4 h-[24px] hover:bg-[var(--hover)] cursor-pointer text-[var(--text-secondary)] rounded-[var(--radius-sm)] mx-1" onclick="toggleSubFolder('f-scans')">
+              <svg id="chev-f-scans" class="w-3 h-3 text-[var(--text-muted)] transform" fill="currentColor" viewBox="0 0 16 16"><path d="M6 12l4-4-4-4v8z"/></svg>
+              <svg class="w-4 h-4 text-[#EAB308]" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/></svg>
+              <span>scans</span>
+            </div>
+            <div id="f-scans" class="hidden flex-col pl-8">
+              <div class="tree-item flex items-center py-1 hover:bg-[var(--hover)] cursor-pointer text-[var(--text-secondary)]">nmap_syn_dmz.xml</div>
+              <div class="tree-item flex items-center py-1 hover:bg-[var(--hover)] cursor-pointer text-[var(--text-secondary)]">zap_baseline.sarif</div>
+            </div>
+
+            <!-- Folder: reports/ -->
+            <div class="tree-item flex items-center gap-1.5 px-4 h-[24px] hover:bg-[var(--hover)] cursor-pointer text-[var(--text-secondary)] rounded-[var(--radius-sm)] mx-1" onclick="toggleSubFolder('f-reports')">
+              <svg id="chev-f-reports" class="w-3 h-3 text-[var(--text-muted)] transform" fill="currentColor" viewBox="0 0 16 16"><path d="M6 12l4-4-4-4v8z"/></svg>
+              <svg class="w-4 h-4 text-[#EAB308]" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/></svg>
+              <span>reports</span>
+            </div>
+            <div id="f-reports" class="hidden flex-col pl-8">
+              <div class="tree-item flex items-center py-1 hover:bg-[var(--hover)] cursor-pointer text-[var(--text-secondary)]">executive_summary.pdf</div>
+            </div>
+
+            <!-- Folder: scripts/ -->
+            <div class="tree-item flex items-center gap-1.5 px-4 h-[24px] hover:bg-[var(--hover)] cursor-pointer text-[var(--text-secondary)] rounded-[var(--radius-sm)] mx-1" onclick="toggleSubFolder('f-scripts')">
+              <svg id="chev-f-scripts" class="w-3 h-3 text-[var(--text-muted)] transform" fill="currentColor" viewBox="0 0 16 16"><path d="M6 12l4-4-4-4v8z"/></svg>
+              <svg class="w-4 h-4 text-[#EAB308]" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/></svg>
+              <span>scripts</span>
+            </div>
+            <div id="f-scripts" class="hidden flex-col pl-8">
+              <div class="tree-item flex items-center py-1 hover:bg-[var(--hover)] cursor-pointer text-[var(--text-secondary)]">recon_subdomains.sh</div>
+            </div>
+
+            <!-- Root File: notes.md -->
+            <div onclick="openTab('notes.md')" class="tree-item flex items-center justify-between pl-8 pr-3 h-[24px] hover:bg-[var(--hover)] cursor-pointer text-[var(--text-secondary)] rounded-[var(--radius-sm)] mx-1">
+              <div class="flex items-center gap-2 truncate">
+                <span class="text-[#38BDF8] text-[10px] font-mono">md</span>
+                <span class="truncate">notes.md</span>
+              </div>
+              <span class="text-[11px] font-semibold text-[#38BDF8]">A</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- SECTION: OUTLINE -->
+        <div class="collapsible-section border-t border-[var(--border)] pt-1 mt-2">
+          <div onclick="toggleTreeSection('outline-tree')" class="flex items-center gap-1 px-3 py-1 cursor-pointer text-[11px] font-semibold text-[var(--text-secondary)] uppercase hover:text-[var(--text-primary)]">
+            <svg id="chevron-outline-tree" class="w-3.5 h-3.5 transform transition-transform" fill="currentColor" viewBox="0 0 16 16"><path d="M6 12l4-4-4-4v8z"/></svg>
+            <span>OUTLINE</span>
+          </div>
+          <div id="outline-tree" class="hidden flex-col pl-4 text-[12px] text-[var(--text-secondary)]">
+            <div class="px-2 py-0.5 hover:bg-[var(--hover)] cursor-pointer flex items-center gap-1.5"><span class="text-[#E0AF68]">f</span> build_rop_chain()</div>
+            <div class="px-2 py-0.5 hover:bg-[var(--hover)] cursor-pointer flex items-center gap-1.5"><span class="text-[#E0AF68]">f</span> send_stage_one()</div>
+            <div class="px-2 py-0.5 hover:bg-[var(--hover)] cursor-pointer flex items-center gap-1.5"><span class="text-[#2AC3DE]">c</span> ExploitEngine</div>
+          </div>
+        </div>
+
+        <!-- SECTION: TIMELINE -->
+        <div class="collapsible-section border-t border-[var(--border)] pt-1 mt-1">
+          <div onclick="toggleTreeSection('timeline-tree')" class="flex items-center gap-1 px-3 py-1 cursor-pointer text-[11px] font-semibold text-[var(--text-secondary)] uppercase hover:text-[var(--text-primary)]">
+            <svg id="chevron-timeline-tree" class="w-3.5 h-3.5 transform transition-transform" fill="currentColor" viewBox="0 0 16 16"><path d="M6 12l4-4-4-4v8z"/></svg>
+            <span>TIMELINE</span>
+          </div>
+          <div id="timeline-tree" class="hidden flex-col pl-4 text-[12px] text-[var(--text-muted)] py-1">
+            <div class="px-2 py-0.5">Git: 12 minutes ago (commit b2a9f1)</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Resizer Handle for Side Bar (4px) -->
+      <div id="sideBarResizer" class="absolute top-0 right-0 w-[4px] h-full cursor-ew-resize hover:bg-[var(--accent)] transition-colors z-30"></div>
+    </div>
+
+    <!-- ==================== 4. EDITOR AREA + 5. BOTTOM PANEL ==================== -->
+    <main class="flex-1 flex flex-col h-full bg-[var(--surface)] overflow-hidden relative">
+
+      <!-- 4.1 TAB BAR (36px) -->
+      <div id="tabBar" class="h-[36px] min-h-[36px] w-full bg-[var(--bg-app)] border-b border-[var(--border)] flex items-end px-1 gap-1 overflow-x-auto text-[13px]">
+        
+        <!-- Active Tab: buffer_overflow.py -->
+        <div id="tab-buffer_overflow" onclick="switchEditorTab('code')" class="group relative flex items-center gap-2 px-3 h-[32px] bg-[var(--surface)] rounded-t-[var(--radius-sm)] border-t-2 border-[var(--accent)] border-x border-[var(--border)] cursor-pointer text-[var(--text-primary)]">
+          <span class="text-[#38BDF8] text-[11px] font-mono">py</span>
+          <span class="font-medium text-[12.5px]">buffer_overflow.py</span>
+          <!-- Modified dot indicator / close button -->
+          <div class="w-4 h-4 flex items-center justify-center ml-1">
+            <span class="w-2 h-2 rounded-full bg-[var(--accent)] group-hover:hidden"></span>
+            <button class="hidden group-hover:flex items-center justify-center w-3.5 h-3.5 rounded text-[var(--text-muted)] hover:bg-[var(--hover)] hover:text-white" title="Close (Ctrl+W)">✕</button>
+          </div>
+        </div>
+
+        <!-- Tab 2: Findings Dashboard -->
+        <div id="tab-dashboard" onclick="switchEditorTab('dashboard')" class="group relative flex items-center gap-2 px-3 h-[32px] bg-transparent hover:bg-[var(--surface)] rounded-t-[var(--radius-sm)] border-x border-transparent hover:border-[var(--border)] cursor-pointer text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
+          <svg class="w-3.5 h-3.5 text-[var(--severity-crit)]" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 2.5a.75.75 0 01.75.75v4a.75.75 0 01-1.5 0v-4A.75.75 0 018 3.5zm0 8a1 1 0 110-2 1 1 0 010 2z"/>
+          </svg>
+          <span class="text-[12.5px]">Findings Dashboard</span>
+          <span class="px-1.5 py-0.2 text-[10px] font-semibold bg-[var(--severity-crit-bg)] text-[var(--severity-crit)] border border-[var(--severity-crit-border)] rounded-full">3</span>
+          <button class="opacity-0 group-hover:opacity-100 p-0.5 rounded text-[var(--text-muted)] hover:bg-[var(--hover)] hover:text-white" title="Close">✕</button>
+        </div>
+
+        <!-- Tab 3: notes.md -->
+        <div id="tab-notes" onclick="switchEditorTab('notes')" class="group relative flex items-center gap-2 px-3 h-[32px] bg-transparent hover:bg-[var(--surface)] rounded-t-[var(--radius-sm)] border-x border-transparent hover:border-[var(--border)] cursor-pointer text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
+          <span class="text-[#38BDF8] text-[11px] font-mono">md</span>
+          <span class="text-[12.5px]">notes.md</span>
+          <button class="opacity-0 group-hover:opacity-100 p-0.5 rounded text-[var(--text-muted)] hover:bg-[var(--hover)] hover:text-white" title="Close">✕</button>
+        </div>
+
+        <!-- Tab Action Controls -->
+        <div class="ml-auto flex items-center gap-1 text-[var(--text-muted)] pr-2 mb-1">
+          <button class="p-1 rounded-[var(--radius-sm)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)]" title="Split Editor Right">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor"><path d="M14 2H2a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1zm-6 11H2V4h6v9zm7 0h-6V4h6v9z"/></svg>
+          </button>
+          <button class="p-1 rounded-[var(--radius-sm)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)]" title="More Actions">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor"><circle cx="3" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="13" cy="8" r="1.5"/></svg>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- 4.2 BREADCRUMB BAR (24px) -->
+      <div class="h-[24px] min-h-[24px] w-full px-3 flex items-center gap-1.5 bg-[var(--surface)] border-b border-[var(--border)] text-[11.5px] text-[var(--text-muted)]">
+        <span class="hover:text-[var(--text-primary)] cursor-pointer">red_team_titan</span>
+        <span>›</span>
+        <span class="hover:text-[var(--text-primary)] cursor-pointer">payloads</span>
+        <span>›</span>
+        <span class="flex items-center gap-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer">
+          <span class="text-[#38BDF8] text-[10px] font-mono">py</span>
+          <span>buffer_overflow.py</span>
+        </span>
+        <span>›</span>
+        <span class="text-[var(--syn-function)] flex items-center gap-1 cursor-pointer">
+          <span class="text-[10px]">λ</span>
+          <span>synthesize_rop_chain</span>
+        </span>
+      </div>
+
+      <!-- 4.3 EDITOR WORKSPACE CONTENT (Switchable: Code Editor VS Findings Dashboard) -->
+      <div class="flex-1 flex overflow-hidden relative">
+
+        <!-- VIEW A: CODE EDITOR -->
+        <div id="view-code-editor" class="flex-1 flex overflow-hidden relative bg-[var(--surface)]">
+          
+          <!-- Code Canvas -->
+          <div class="flex-1 flex overflow-y-auto overflow-x-auto relative font-code select-text">
+            
+            <!-- Line Number Gutter -->
+            <div class="w-[52px] min-w-[52px] py-2 flex flex-col text-right pr-4 text-[var(--text-muted)] bg-[var(--surface)] border-r border-[var(--border)] select-none text-[12px]">
+              <span class="leading-[20px]">1</span>
+              <span class="leading-[20px]">2</span>
+              <span class="leading-[20px]">3</span>
+              <span class="leading-[20px]">4</span>
+              <span class="leading-[20px]">5</span>
+              <span class="leading-[20px]">6</span>
+              <span class="leading-[20px]">7</span>
+              <span class="leading-[20px]">8</span>
+              <span class="leading-[20px]">9</span>
+              <span class="leading-[20px]">10</span>
+              <span class="leading-[20px]">11</span>
+              <span class="leading-[20px]">12</span>
+              <span class="leading-[20px]">13</span>
+              <span class="leading-[20px]">14</span>
+              <span class="leading-[20px] text-[var(--text-primary)] font-bold">15</span>
+              <span class="leading-[20px]">16</span>
+              <span class="leading-[20px] text-[var(--severity-crit)] font-semibold flex items-center justify-end gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-[var(--severity-crit)]"></span>17
+              </span>
+              <span class="leading-[20px]">18</span>
+              <span class="leading-[20px]">19</span>
+              <span class="leading-[20px]">20</span>
+              <span class="leading-[20px]">21</span>
+              <span class="leading-[20px]">22</span>
+            </div>
+
+            <!-- Code Lines with Syntax Coloring -->
+            <div class="flex-1 py-2 pl-4 pr-16 text-[13.5px] leading-[20px] relative whitespace-pre font-code">
+              
+              <!-- Current Line Highlight (Line 15) -->
+              <div class="absolute left-0 right-0 top-[288px] h-[20px] bg-[var(--editor-current-line)] border-y border-[rgba(255,255,255,0.06)] pointer-events-none"></div>
+
+              <div><span class="text-[var(--syn-comment)]">#!/usr/bin/env python3</span></div>
+              <div><span class="text-[var(--syn-comment)]"># SentinelCode Exploit Simulation Suite v2.4</span></div>
+              <div><span class="text-[var(--syn-keyword)]">import</span> <span class="text-[var(--syn-variable)]">socket</span>, <span class="text-[var(--syn-variable)]">struct</span>, <span class="text-[var(--syn-variable)]">sys</span></div>
+              <div><span class="text-[var(--syn-keyword)]">from</span> <span class="text-[var(--syn-variable)]">ctypes</span> <span class="text-[var(--syn-keyword)]">import</span> <span class="text-[var(--syn-type)]">c_uint64</span></div>
+              <div></div>
+              <div><span class="text-[var(--syn-variable)]">TARGET_HOST</span> <span class="text-[var(--syn-operator)]">=</span> <span class="text-[var(--syn-string)]">"192.168.1.105"</span></div>
+              <div><span class="text-[var(--syn-variable)]">TARGET_PORT</span> <span class="text-[var(--syn-operator)]">=</span> <span class="text-[var(--syn-number)]">8080</span></div>
+              <div><span class="text-[var(--syn-variable)]">RET_OFFSET</span>   <span class="text-[var(--syn-operator)]">=</span> <span class="text-[var(--syn-number)]">512</span></div>
+              <div></div>
+              <div><span class="text-[var(--syn-keyword)]">def</span> <span class="text-[var(--syn-function)]">p64</span>(<span class="text-[var(--syn-variable)]">address</span>: <span class="text-[var(--syn-type)]">int</span>) <span class="text-[var(--syn-operator)]">-&gt;</span> <span class="text-[var(--syn-type)]">bytes</span>:</div>
+              <div>    <span class="text-[var(--syn-control)]">return</span> <span class="text-[var(--syn-variable)]">struct</span>.<span class="text-[var(--syn-function)]">pack</span>(<span class="text-[var(--syn-string)]">"&lt;Q"</span>, <span class="text-[var(--syn-variable)]">address</span>)</div>
+              <div></div>
+              <div><span class="text-[var(--syn-keyword)]">def</span> <span class="text-[var(--syn-function)]">synthesize_rop_chain</span>(<span class="text-[var(--syn-variable)]">base_libc</span>: <span class="text-[var(--syn-type)]">int</span>) <span class="text-[var(--syn-operator)]">-&gt;</span> <span class="text-[var(--syn-type)]">bytes</span>:</div>
+              <div>    <span class="text-[var(--syn-comment)]"># Gadgets resolved from libc-2.31.so</span></div>
+              <div class="relative"><span class="text-[var(--syn-variable)]">    pop_rdi</span> <span class="text-[var(--syn-operator)]">=</span> <span class="text-[var(--syn-variable)]">base_libc</span> <span class="text-[var(--syn-operator)]">+</span> <span class="text-[var(--syn-number)]">0x0002155f</span><span class="inline-block w-[2px] h-[15px] bg-[var(--accent)] caret-blink ml-0.5 align-middle"></span></div>
+              <div>    <span class="text-[var(--syn-variable)]">system_addr</span> <span class="text-[var(--syn-operator)]">=</span> <span class="text-[var(--syn-variable)]">base_libc</span> <span class="text-[var(--syn-operator)]">+</span> <span class="text-[var(--syn-number)]">0x0004f550</span></div>
+              <div class="relative bg-[var(--severity-crit-bg)] rounded-[var(--radius-sm)] px-1"><span class="text-[var(--syn-variable)]">    bin_sh</span> <span class="text-[var(--syn-operator)]">=</span> <span class="text-[var(--syn-number)]">0x7ffff7f7a1b0</span> <span class="text-[var(--syn-comment)]"># CWE-120: Hardcoded libc pointer without ASLR rebase</span></div>
+              <div></div>
+              <div>    <span class="text-[var(--syn-variable)]">chain</span> <span class="text-[var(--syn-operator)]">=</span> <span class="text-[var(--syn-string)]">b"A"</span> <span class="text-[var(--syn-operator)]">*</span> <span class="text-[var(--syn-variable)]">RET_OFFSET</span></div>
+              <div>    <span class="text-[var(--syn-variable)]">chain</span> <span class="text-[var(--syn-operator)]">+=</span> <span class="text-[var(--syn-function)]">p64</span>(<span class="text-[var(--syn-variable)]">pop_rdi</span>) <span class="text-[var(--syn-operator)]">+</span> <span class="text-[var(--syn-function)]">p64</span>(<span class="text-[var(--syn-variable)]">bin_sh</span>) <span class="text-[var(--syn-operator)]">+</span> <span class="text-[var(--syn-function)]">p64</span>(<span class="text-[var(--syn-variable)]">system_addr</span>)</div>
+              <div>    <span class="text-[var(--syn-control)]">return</span> <span class="text-[var(--syn-variable)]">chain</span></div>
+              <div></div>
+              
+              <!-- Inline Security Diagnostic Widget Hover Card -->
+              <div class="mt-3 max-w-[620px] bg-[var(--surface-raised)] border border-[var(--severity-crit-border)] rounded-[var(--radius-md)] p-3 glass-shadow text-[12px] font-sans">
+                <div class="flex items-center justify-between pb-2 border-b border-[var(--border)]">
+                  <div class="flex items-center gap-2">
+                    <span class="px-2 py-0.5 text-[10.5px] font-semibold bg-[var(--severity-crit-bg)] text-[var(--severity-crit)] border border-[var(--severity-crit-border)] rounded-full">CRITICAL 9.8</span>
+                    <span class="font-semibold text-[var(--text-primary)]">CWE-120: Static ROP Gadget Address</span>
+                  </div>
+                  <span class="text-[11px] text-[var(--text-muted)]">SAST Engine • Line 17</span>
+                </div>
+                <p class="text-[var(--text-secondary)] mt-2 text-[12px] leading-relaxed">
+                  Hardcoded absolute pointer <code class="font-code text-[var(--syn-number)]">0x7ffff7f7a1b0</code> detected in memory stream. Remote host has active ASLR enabled. Gadget alignment will fail during runtime execution.
+                </p>
+                <div class="flex items-center gap-2 mt-3 pt-2 border-t border-[var(--border)]">
+                  <button class="px-2.5 py-1 bg-[var(--accent)] hover:bg-blue-600 text-white rounded-[var(--radius-sm)] font-medium text-[11px] transition-colors">Apply Auto-Rebase Patch</button>
+                  <button class="px-2.5 py-1 bg-[var(--hover)] hover:bg-[var(--selected-row)] text-[var(--text-secondary)] hover:text-white rounded-[var(--radius-sm)] text-[11px] transition-colors">View CVE Matching Details</button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Minimap (90px) -->
+          <div class="w-[90px] min-w-[90px] h-full bg-[var(--surface)] border-l border-[var(--border)] relative select-none opacity-85 hover:opacity-100 transition-opacity">
+            <div class="absolute inset-0 p-1 flex flex-col gap-1 pointer-events-none opacity-40">
+              <div class="w-10 h-1 bg-[var(--syn-keyword)] rounded-full"></div>
+              <div class="w-14 h-1 bg-[var(--syn-comment)] rounded-full"></div>
+              <div class="w-16 h-1 bg-[var(--syn-variable)] rounded-full"></div>
+              <div class="w-12 h-1 bg-[var(--syn-string)] rounded-full"></div>
+              <div class="w-8 h-1 bg-[var(--syn-number)] rounded-full"></div>
+              <div class="w-14 h-1 bg-[var(--syn-keyword)] rounded-full mt-2"></div>
+              <div class="w-18 h-1 bg-[var(--syn-function)] rounded-full"></div>
+              <div class="w-12 h-1 bg-[var(--severity-crit)] rounded-full"></div>
+              <div class="w-16 h-1 bg-[var(--syn-control)] rounded-full"></div>
+            </div>
+            <!-- Minimap Viewport Slider -->
+            <div class="absolute top-2 left-0 right-0 h-[64px] bg-[rgba(255,255,255,0.06)] border-y border-[rgba(255,255,255,0.12)] cursor-grab"></div>
+            <!-- Minimap error marker -->
+            <div class="absolute top-[48px] right-0 w-2 h-1 bg-[var(--severity-crit)] rounded-l"></div>
+          </div>
+
+        </div>
+
+        <!-- VIEW B: FINDINGS DASHBOARD (Interactive Tab) -->
+        <div id="view-findings-dashboard" class="hidden flex-1 overflow-y-auto bg-[var(--surface)] p-6">
+          <div class="max-w-[1200px] mx-auto space-y-6">
+            
+            <!-- Header & Metrics -->
+            <div class="flex items-center justify-between">
+              <div>
+                <h1 class="text-[18px] font-bold text-[var(--text-primary)] tracking-tight">Security Posture & Vulnerability Telemetry</h1>
+                <p class="text-[12.5px] text-[var(--text-secondary)] mt-0.5">Target: <code class="font-code text-[var(--accent)]">192.168.1.105 (Debian 12 Bookworm)</code> • Scan Session ID: #SEC-9842</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="px-3 py-1.5 bg-[var(--surface-raised)] border border-[var(--border)] rounded-[var(--radius-md)] text-[12px] font-medium hover:bg-[var(--hover)] text-[var(--text-secondary)]">Export SARIF</button>
+                <button class="px-3 py-1.5 bg-[var(--accent)] hover:bg-blue-600 rounded-[var(--radius-md)] text-[12px] font-medium text-white shadow-sm">Trigger Full Dynamic Scan</button>
+              </div>
+            </div>
+
+            <!-- Stat Cards Grid -->
+            <div class="grid grid-cols-4 gap-4">
+              <!-- Critical Card -->
+              <div class="p-4 bg-[var(--surface-raised)] border border-[var(--border)] rounded-[var(--radius-lg)] flex flex-col justify-between">
+                <div class="flex items-center justify-between">
+                  <span class="text-[12px] font-semibold text-[var(--text-secondary)] uppercase">Critical Exploits</span>
+                  <span class="px-2 py-0.5 text-[10px] font-bold bg-[var(--severity-crit-bg)] text-[var(--severity-crit)] border border-[var(--severity-crit-border)] rounded-full">ACTION REQ</span>
+                </div>
+                <div class="flex items-baseline justify-between mt-3">
+                  <span class="text-[28px] font-bold text-[var(--severity-crit)]">3</span>
+                  <!-- Inline SVG Sparkline -->
+                  <svg class="w-20 h-6" viewBox="0 0 80 24" fill="none">
+                    <path d="M2 18 L20 16 L38 20 L56 8 L76 4" stroke="#EF4444" stroke-width="1.8" stroke-linecap="round"/>
+                    <circle cx="76" cy="4" r="2.5" fill="#EF4444"/>
+                  </svg>
+                </div>
+              </div>
+
+              <!-- High Card -->
+              <div class="p-4 bg-[var(--surface-raised)] border border-[var(--border)] rounded-[var(--radius-lg)] flex flex-col justify-between">
+                <div class="flex items-center justify-between">
+                  <span class="text-[12px] font-semibold text-[var(--text-secondary)] uppercase">High Severity</span>
+                  <span class="px-2 py-0.5 text-[10px] font-bold bg-[var(--severity-warn-bg)] text-[var(--severity-warn)] border border-[var(--severity-warn-border)] rounded-full">ACTIVE</span>
+                </div>
+                <div class="flex items-baseline justify-between mt-3">
+                  <span class="text-[28px] font-bold text-[var(--severity-warn)]">6</span>
+                  <svg class="w-20 h-6" viewBox="0 0 80 24" fill="none">
+                    <path d="M2 20 L22 14 L42 16 L62 10 L76 6" stroke="#F59E0B" stroke-width="1.8" stroke-linecap="round"/>
+                    <circle cx="76" cy="6" r="2.5" fill="#F59E0B"/>
+                  </svg>
+                </div>
+              </div>
+
+              <!-- Medium Card -->
+              <div class="p-4 bg-[var(--surface-raised)] border border-[var(--border)] rounded-[var(--radius-lg)] flex flex-col justify-between">
+                <div class="flex items-center justify-between">
+                  <span class="text-[12px] font-semibold text-[var(--text-secondary)] uppercase">Medium Warnings</span>
+                  <span class="px-2 py-0.5 text-[10px] font-bold bg-[var(--severity-info-bg)] text-[var(--severity-info)] border border-[var(--severity-info-border)] rounded-full">TRIAGE</span>
+                </div>
+                <div class="flex items-baseline justify-between mt-3">
+                  <span class="text-[28px] font-bold text-[var(--severity-info)]">4</span>
+                  <svg class="w-20 h-6" viewBox="0 0 80 24" fill="none">
+                    <path d="M2 14 L20 18 L40 10 L60 12 L76 8" stroke="#3B82F6" stroke-width="1.8" stroke-linecap="round"/>
+                    <circle cx="76" cy="8" r="2.5" fill="#3B82F6"/>
+                  </svg>
+                </div>
+              </div>
+
+              <!-- Resolved Card -->
+              <div class="p-4 bg-[var(--surface-raised)] border border-[var(--border)] rounded-[var(--radius-lg)] flex flex-col justify-between">
+                <div class="flex items-center justify-between">
+                  <span class="text-[12px] font-semibold text-[var(--text-secondary)] uppercase">Patched / Resolved</span>
+                  <span class="px-2 py-0.5 text-[10px] font-bold bg-[var(--severity-succ-bg)] text-[var(--severity-succ)] border border-[var(--severity-succ-border)] rounded-full">VERIFIED</span>
+                </div>
+                <div class="flex items-baseline justify-between mt-3">
+                  <span class="text-[28px] font-bold text-[var(--severity-succ)]">18</span>
+                  <svg class="w-20 h-6" viewBox="0 0 80 24" fill="none">
+                    <path d="M2 18 L24 16 L44 10 L64 6 L76 2" stroke="#22C55E" stroke-width="1.8" stroke-linecap="round"/>
+                    <circle cx="76" cy="2" r="2.5" fill="#22C55E"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- Filter Bar with Removable Chips -->
+            <div class="flex items-center justify-between p-3 bg-[var(--surface-raised)] border border-[var(--border)] rounded-[var(--radius-md)]">
+              <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5 px-2.5 py-1 bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] text-[12px]">
+                  <span class="text-[var(--text-muted)]">severity:</span>
+                  <span class="text-[var(--severity-crit)] font-medium">critical</span>
+                  <button class="ml-1 text-[var(--text-muted)] hover:text-white">✕</button>
+                </div>
+                <div class="flex items-center gap-1.5 px-2.5 py-1 bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] text-[12px]">
+                  <span class="text-[var(--text-muted)]">status:</span>
+                  <span class="text-[var(--accent)] font-medium">unresolved</span>
+                  <button class="ml-1 text-[var(--text-muted)] hover:text-white">✕</button>
+                </div>
+                <button class="text-[11.5px] text-[var(--text-muted)] hover:text-[var(--accent)] font-medium ml-2">Clear all</button>
+              </div>
+              <input type="text" placeholder="Filter vulnerabilities (e.g. ROP, CWE, CVSS)..." class="w-72 px-3 py-1 bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] text-[12px] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus-ring">
+            </div>
+
+            <!-- Findings Table / List -->
+            <div class="bg-[var(--surface-raised)] border border-[var(--border)] rounded-[var(--radius-lg)] overflow-hidden">
+              <div class="grid grid-cols-12 px-4 py-2.5 bg-[var(--bg-app)] border-b border-[var(--border)] text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">
+                <div class="col-span-5">Finding & Identifier</div>
+                <div class="col-span-2">Source / File</div>
+                <div class="col-span-2">CVSS Score</div>
+                <div class="col-span-2">Status</div>
+                <div class="col-span-1 text-right">Actions</div>
+              </div>
+
+              <!-- Row 1 (Critical) -->
+              <div class="grid grid-cols-12 px-4 py-3 border-b border-[var(--border)] items-center hover:bg-[var(--hover)] text-[12.5px] transition-colors cursor-pointer" onclick="switchEditorTab('code')">
+                <div class="col-span-5 flex items-center gap-3">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[var(--severity-crit)]"></span>
+                  <div>
+                    <div class="font-medium text-[var(--text-primary)]">CWE-120: Hardcoded libc pointer without ASLR rebase</div>
+                    <div class="text-[11px] text-[var(--text-muted)]">Buffer Overflow ROP chain gadget addresses static offset</div>
+                  </div>
+                </div>
+                <div class="col-span-2 font-code text-[11.5px] text-[var(--text-secondary)]">buffer_overflow.py:17</div>
+                <div class="col-span-2">
+                  <span class="px-2 py-0.5 text-[11px] font-bold bg-[var(--severity-crit-bg)] text-[var(--severity-crit)] border border-[var(--severity-crit-border)] rounded-full">9.8 Critical</span>
+                </div>
+                <div class="col-span-2">
+                  <span class="text-[11.5px] text-[var(--severity-crit)] font-medium">● Exploitable</span>
+                </div>
+                <div class="col-span-1 text-right">
+                  <button class="text-[var(--text-muted)] hover:text-white text-[12px]">Inspect</button>
+                </div>
+              </div>
+
+              <!-- Row 2 (Critical) -->
+              <div class="grid grid-cols-12 px-4 py-3 border-b border-[var(--border)] items-center hover:bg-[var(--hover)] text-[12.5px] transition-colors cursor-pointer">
+                <div class="col-span-5 flex items-center gap-3">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[var(--severity-crit)]"></span>
+                  <div>
+                    <div class="font-medium text-[var(--text-primary)]">CWE-287: Zero-byte string truncation in JWT verify</div>
+                    <div class="text-[11px] text-[var(--text-muted)]">Signature validation bypass via unvalidated algorithm token</div>
+                  </div>
+                </div>
+                <div class="col-span-2 font-code text-[11.5px] text-[var(--text-secondary)]">auth_handler.go:42</div>
+                <div class="col-span-2">
+                  <span class="px-2 py-0.5 text-[11px] font-bold bg-[var(--severity-crit-bg)] text-[var(--severity-crit)] border border-[var(--severity-crit-border)] rounded-full">9.1 Critical</span>
+                </div>
+                <div class="col-span-2">
+                  <span class="text-[11.5px] text-[var(--severity-warn)] font-medium">● Triaged</span>
+                </div>
+                <div class="col-span-1 text-right">
+                  <button class="text-[var(--text-muted)] hover:text-white text-[12px]">Inspect</button>
+                </div>
+              </div>
+
+              <!-- Row 3 (Resolved / Strikethrough) -->
+              <div class="grid grid-cols-12 px-4 py-3 items-center hover:bg-[var(--hover)] text-[12.5px] opacity-50 transition-colors">
+                <div class="col-span-5 flex items-center gap-3">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[var(--severity-succ)]"></span>
+                  <div>
+                    <div class="font-medium text-[var(--text-primary)] line-through">CWE-319: Cleartext Transmission of Sensitive Credentials</div>
+                    <div class="text-[11px] text-[var(--text-muted)]">Port 80 redirected to TLS 1.3 socket listener</div>
+                  </div>
+                </div>
+                <div class="col-span-2 font-code text-[11.5px] text-[var(--text-secondary)]">proxy_tunnel.rs:88</div>
+                <div class="col-span-2">
+                  <span class="px-2 py-0.5 text-[11px] font-bold bg-[var(--severity-succ-bg)] text-[var(--severity-succ)] border border-[var(--severity-succ-border)] rounded-full">5.4 Medium</span>
+                </div>
+                <div class="col-span-2">
+                  <span class="text-[11.5px] text-[var(--severity-succ)] font-medium">✓ Patched</span>
+                </div>
+                <div class="col-span-1 text-right">
+                  <button class="text-[var(--text-muted)] hover:text-white text-[12px]">Details</button>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 5. BOTTOM PANEL (240px default, resizable via top drag handle) -->
+      <div id="bottomPanel" class="h-[240px] min-h-[120px] max-h-[600px] w-full bg-[var(--surface)] border-t border-[var(--border)] flex flex-col relative select-none">
+        
+        <!-- Drag Handle (Top 4px) -->
+        <div id="panelResizer" class="absolute top-0 left-0 right-0 h-[4px] cursor-ns-resize hover:bg-[var(--accent)] transition-colors z-30"></div>
+
+        <!-- Panel Tab Bar (36px) -->
+        <div class="h-[36px] min-h-[36px] px-3 flex items-center justify-between border-b border-[var(--border)] bg-[var(--bg-app)]">
+          <div class="flex items-center gap-4 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)] h-full">
+            
+            <!-- Tab: FINDINGS -->
+            <button id="ptab-findings" onclick="switchPanelTab('findings')" class="relative h-full flex items-center gap-1.5 text-[var(--text-primary)] hover:text-white transition-colors">
+              <span>FINDINGS</span>
+              <span class="px-1.5 py-0.2 text-[9.5px] font-bold bg-[var(--severity-crit-bg)] text-[var(--severity-crit)] border border-[var(--severity-crit-border)] rounded-full">3</span>
+              <span id="pind-findings" class="absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--accent)]"></span>
+            </button>
+
+            <!-- Tab: OUTPUT -->
+            <button id="ptab-output" onclick="switchPanelTab('output')" class="relative h-full flex items-center gap-1.5 hover:text-[var(--text-primary)] transition-colors">
+              <span>OUTPUT</span>
+              <span id="pind-output" class="hidden absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--accent)]"></span>
+            </button>
+
+            <!-- Tab: TERMINAL (Active) -->
+            <button id="ptab-terminal" onclick="switchPanelTab('terminal')" class="relative h-full flex items-center gap-1.5 hover:text-[var(--text-primary)] transition-colors">
+              <span>TERMINAL</span>
+              <span id="pind-terminal" class="hidden absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--accent)]"></span>
+            </button>
+
+            <!-- Tab: TRAFFIC LOG -->
+            <button id="ptab-traffic" onclick="switchPanelTab('traffic')" class="relative h-full flex items-center gap-1.5 hover:text-[var(--text-primary)] transition-colors">
+              <span>TRAFFIC LOG</span>
+              <span id="pind-traffic" class="hidden absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--accent)]"></span>
+            </button>
+          </div>
+
+          <!-- Panel Right Controls -->
+          <div class="flex items-center gap-2 text-[var(--text-muted)]">
+            <button class="p-1 rounded-[var(--radius-sm)] hover:bg-[var(--hover)] hover:text-white" title="New Terminal (Ctrl+Shift+`)">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2z"/></svg>
+            </button>
+            <button class="p-1 rounded-[var(--radius-sm)] hover:bg-[var(--hover)] hover:text-white" title="Split Terminal">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor"><path d="M14 2H2a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1zm-6 11H2V4h6v9zm7 0h-6V4h6v9z"/></svg>
+            </button>
+            <button onclick="togglePanelMaximize()" class="p-1 rounded-[var(--radius-sm)] hover:bg-[var(--hover)] hover:text-white" title="Maximize Panel Size">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor"><path d="M3 3h10v10H3V3zm1 1v8h8V4H4z"/></svg>
+            </button>
+            <button onclick="togglePanel(false)" class="p-1 rounded-[var(--radius-sm)] hover:bg-[var(--hover)] hover:text-white" title="Close Panel (Ctrl+J)">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor"><path d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.75.75 0 1 1 1.06 1.06L9.06 8l3.22 3.22a.75.75 0 1 1-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 0 1-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Panel Body Content -->
+        <div class="flex-1 overflow-hidden relative font-sans">
+          
+          <!-- SUB-VIEW 1: FINDINGS (Problems Panel) -->
+          <div id="pview-findings" class="h-full overflow-y-auto p-2 text-[12.5px] select-text">
+            <!-- File Group 1 -->
+            <div class="mb-2">
+              <div class="flex items-center gap-1.5 font-semibold text-[var(--text-primary)] px-2 py-1">
+                <svg class="w-3 h-3 text-[var(--text-muted)] transform rotate-90" fill="currentColor" viewBox="0 0 16 16"><path d="M6 12l4-4-4-4v8z"/></svg>
+                <span>buffer_overflow.py</span>
+                <span class="text-[11px] text-[var(--text-muted)] font-normal">payloads • 1 Error, 1 Warning</span>
+              </div>
+              <div class="pl-6 space-y-0.5">
+                <div class="flex items-center justify-between px-2 py-1 hover:bg-[var(--hover)] rounded-[var(--radius-sm)] cursor-pointer group">
+                  <div class="flex items-center gap-2 truncate">
+                    <span class="w-2 h-2 rounded-full bg-[var(--severity-crit)]"></span>
+                    <span class="text-[var(--text-primary)] font-medium truncate">CWE-120: Hardcoded ROP gadget address vulnerable to ASLR randomization</span>
+                  </div>
+                  <div class="flex items-center gap-4 text-[11px] text-[var(--text-muted)]">
+                    <span class="px-1.5 py-0.2 bg-[var(--severity-crit-bg)] text-[var(--severity-crit)] border border-[var(--severity-crit-border)] rounded-full">CVSS 9.8</span>
+                    <span class="font-code">[17, 12]</span>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between px-2 py-1 hover:bg-[var(--hover)] rounded-[var(--radius-sm)] cursor-pointer group">
+                  <div class="flex items-center gap-2 truncate">
+                    <span class="w-2 h-2 rounded-full bg-[var(--severity-warn)]"></span>
+                    <span class="text-[var(--text-secondary)] truncate">Unchecked return value in socket sendall() transport frame</span>
+                  </div>
+                  <div class="flex items-center gap-4 text-[11px] text-[var(--text-muted)]">
+                    <span class="px-1.5 py-0.2 bg-[var(--severity-warn-bg)] text-[var(--severity-warn)] border border-[var(--severity-warn-border)] rounded-full">CVSS 6.2</span>
+                    <span class="font-code">[24, 5]</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- File Group 2 -->
+            <div>
+              <div class="flex items-center gap-1.5 font-semibold text-[var(--text-primary)] px-2 py-1">
+                <svg class="w-3 h-3 text-[var(--text-muted)] transform rotate-90" fill="currentColor" viewBox="0 0 16 16"><path d="M6 12l4-4-4-4v8z"/></svg>
+                <span>auth_bypass.go</span>
+                <span class="text-[11px] text-[var(--text-muted)] font-normal">internal/crypto • 1 Critical</span>
+              </div>
+              <div class="pl-6 space-y-0.5">
+                <div class="flex items-center justify-between px-2 py-1 hover:bg-[var(--hover)] rounded-[var(--radius-sm)] cursor-pointer group">
+                  <div class="flex items-center gap-2 truncate">
+                    <span class="w-2 h-2 rounded-full bg-[var(--severity-crit)]"></span>
+                    <span class="text-[var(--text-primary)] font-medium truncate">CWE-287: Zero-byte JWT header parser injection bypass</span>
+                  </div>
+                  <div class="flex items-center gap-4 text-[11px] text-[var(--text-muted)]">
+                    <span class="px-1.5 py-0.2 bg-[var(--severity-crit-bg)] text-[var(--severity-crit)] border border-[var(--severity-crit-border)] rounded-full">CVSS 9.1</span>
+                    <span class="font-code">[42, 8]</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- SUB-VIEW 2: TERMINAL (Interactive Live Terminal) -->
+          <div id="pview-terminal" class="hidden h-full flex flex-col p-3 font-code text-[12.5px] leading-relaxed bg-[var(--surface)] overflow-y-auto select-text">
+            <div class="text-[var(--text-muted)] mb-1">Sentinel Kali Sandboxed Shell • zsh 5.9 (x86_64-linux-gnu) • PID: 14088</div>
+            <div class="text-[var(--text-secondary)]">
+              <span class="text-[#22C55E] font-semibold">root@sentinel-kali</span>:<span class="text-[#38BDF8]">~/red_team_titan/payloads</span># python3 buffer_overflow.py --target 192.168.1.105 --port 8080 --stealth
+            </div>
+            <div class="text-[var(--text-primary)] mt-1">
+              [<span class="text-[#22C55E] font-bold">+</span>] Initializing socket stream connection to <span class="text-[#38BDF8]">192.168.1.105:8080</span>...<br>
+              [<span class="text-[#22C55E] font-bold">+</span>] Probing remote stack alignment with 128 cyclic bytes...<br>
+              [<span class="text-[#F59E0B] font-bold">!</span>] <span class="text-[#F59E0B]">Remote canary absent!</span> Non-executable stack (NX) enabled.<br>
+              [<span class="text-[#22C55E] font-bold">+</span>] Synthesized ROP Chain Payload: 544 bytes transferred.<br>
+              [<span class="text-[#22C55E] font-bold">+</span>] <span class="text-[#22C55E] font-semibold">Meterpreter reverse shell listener triggered on port 4444</span>.<br>
+            </div>
+            <div class="text-[#38BDF8] mt-1">meterpreter &gt; sysinfo</div>
+            <div class="text-[var(--text-muted)]">
+              OS: Linux 6.1.0-18-amd64 (Debian Bookworm) • Architecture: x64 • UID: 33 (www-data)
+            </div>
+            <div class="flex items-center gap-1.5 mt-2 text-[var(--text-primary)]">
+              <span class="text-[#38BDF8]">meterpreter &gt;</span>
+              <span class="inline-block w-2 h-4 bg-[var(--accent)] caret-blink"></span>
+            </div>
+          </div>
+
+          <!-- SUB-VIEW 3: TRAFFIC LOG -->
+          <div id="pview-traffic" class="hidden h-full overflow-y-auto p-3 font-code text-[12px] bg-[var(--surface)] select-text space-y-1">
+            <div class="text-[var(--text-muted)]">[14:22:01.402] REQ: GET /cgi-bin/.%2e/.%2e/bin/sh HTTP/1.1 -> Host: 192.168.1.105 [200 OK, 428 bytes]</div>
+            <div class="text-[var(--text-muted)]">[14:22:02.115] TCP: SYN_SENT 10.0.0.12:4444 <- 192.168.1.105:51240 [ESTABLISHED]</div>
+            <div class="text-[#22C55E]">[14:22:02.890] PROXY: Encrypted TLS handshake negotiated over Burp Intercept Listener (Port 8080)</div>
+          </div>
+
+          <!-- SUB-VIEW 4: OUTPUT -->
+          <div id="pview-output" class="hidden h-full p-3 font-code text-[12px] text-[var(--text-secondary)]">
+            [Extension Host] Sentinel Security Analyzer Extension v1.8.0 initialized.<br>
+            [SAST Engine] 38 AST rules loaded. Cache warm.
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- ==================== 6. STATUS BAR (24px) ==================== -->
+  <footer class="h-[24px] min-h-[24px] w-full bg-[var(--bg-app)] border-t border-[var(--border)] px-2 flex items-center justify-between text-[12px] text-[var(--text-muted)] z-50 select-none">
+    
+    <!-- Left Status Items -->
+    <div class="flex items-center gap-1 h-full">
+      <!-- Remote container button -->
+      <button class="flex items-center justify-center px-2 h-full bg-[var(--accent)] text-white font-medium hover:bg-blue-600 transition-colors" title="Connected to Sentinel Kali Container">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M1.5 3A1.5 1.5 0 0 0 0 4.5v7A1.5 1.5 0 0 0 1.5 13h13a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 14.5 3h-13zm0 1h13a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-7a.5.5 0 0 1 .5-.5zM3 6.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/>
+        </svg>
+      </button>
+
+      <!-- Git branch -->
+      <button class="flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--radius-sm)] hover:bg-[rgba(255,255,255,0.08)] hover:text-[var(--text-primary)]">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="18" cy="18" r="3" stroke-width="2"/><circle cx="6" cy="6" r="3" stroke-width="2"/><path d="M6 9a9 9 0 009 9" stroke-width="2"/></svg>
+        <span class="font-medium text-[var(--text-secondary)]">main*</span>
+      </button>
+
+      <!-- Sync Icon -->
+      <button class="p-1 rounded-[var(--radius-sm)] hover:bg-[rgba(255,255,255,0.08)] hover:text-[var(--text-primary)]" title="Synchronize Changes">
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-width="2"/></svg>
+      </button>
+
+      <!-- Errors / Warnings counts -->
+      <button onclick="switchPanelTab('findings'); togglePanel(true)" class="flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--radius-sm)] hover:bg-[rgba(255,255,255,0.08)] hover:text-[var(--text-primary)]">
+        <div class="flex items-center gap-1 text-[var(--severity-crit)]">
+          <svg class="w-3 h-3" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="7"/><line x1="8" y1="4" x2="8" y2="9" stroke="black" stroke-width="1.5"/><circle cx="8" cy="11.5" r="0.8" fill="black"/></svg>
+          <span class="font-bold">3</span>
+        </div>
+        <div class="flex items-center gap-1 text-[var(--severity-warn)]">
+          <svg class="w-3 h-3" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2l6 11H2L8 2z"/></svg>
+          <span class="font-bold">6</span>
+        </div>
+      </button>
+
+      <!-- Scan Status -->
+      <div class="flex items-center gap-1.5 px-2 text-[11px] text-[var(--text-secondary)]">
+        <span class="w-2 h-2 rounded-full bg-[#22C55E] pulse-dot"></span>
+        <span>Scan: listening (Port 8080)</span>
+      </div>
+    </div>
+
+    <!-- Right Status Items -->
+    <div class="flex items-center gap-2 h-full text-[11.5px]">
+      <span class="px-1.5 py-0.5 text-[var(--text-secondary)] font-code">Target: 192.168.1.105</span>
+      <span class="h-3 w-[1px] bg-[var(--border)]"></span>
+      <button class="px-1.5 py-0.5 rounded-[var(--radius-sm)] hover:bg-[rgba(255,255,255,0.08)] hover:text-[var(--text-primary)]">Ln 15, Col 42</button>
+      <button class="px-1.5 py-0.5 rounded-[var(--radius-sm)] hover:bg-[rgba(255,255,255,0.08)] hover:text-[var(--text-primary)]">Spaces: 4</button>
+      <button class="px-1.5 py-0.5 rounded-[var(--radius-sm)] hover:bg-[rgba(255,255,255,0.08)] hover:text-[var(--text-primary)]">UTF-8</button>
+      <button class="px-1.5 py-0.5 rounded-[var(--radius-sm)] hover:bg-[rgba(255,255,255,0.08)] hover:text-[var(--text-primary)]">LF</button>
+      <button class="px-1.5 py-0.5 rounded-[var(--radius-sm)] hover:bg-[rgba(255,255,255,0.08)] hover:text-[var(--text-primary)] text-[#38BDF8]">Python</button>
+      
+      <!-- Secure Mode Pill -->
+      <div class="flex items-center gap-1 px-2 py-0.5 bg-[var(--severity-succ-bg)] border border-[var(--severity-succ-border)] rounded-full text-[var(--severity-succ)] font-medium text-[11px]">
+        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 16 16"><path d="M8 1L2 3.5v5c0 3.5 2.5 6.5 6 7.5 3.5-1 6-4 6-7.5v-5L8 1zm0 2.2l4 1.7v4.1c0 2.5-1.7 4.8-4 5.6-2.3-.8-4-3.1-4-5.6V4.9l4-1.7z"/></svg>
+        <span>Secure Mode</span>
+      </div>
+
+      <!-- Notification Bell -->
+      <button class="p-1 rounded-[var(--radius-sm)] hover:bg-[rgba(255,255,255,0.08)] hover:text-[var(--text-primary)] text-[var(--text-muted)]" title="Notifications">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 16a2 2 0 002-2H6a2 2 0 002 2zm.995-14.901a1 1 0 10-1.99 0A5.002 5.002 0 003 6c0 1.098-.5 3.025-1.172 4.19A1 1 0 002.7 12h10.6a1 1 0 00.872-1.81C13.5 9.025 13 7.098 13 6a5.002 5.002 0 00-4.005-4.901z"/>
+        </svg>
+      </button>
+    </div>
+
+  </footer>
+
+  <!-- ==================== FLOATING WIDGETS ==================== -->
+
+  <!-- 1. COMMAND PALETTE (Ctrl+Shift+P / Ctrl+P) -->
+  <div id="commandPalette" class="hidden fixed inset-0 z-[100] flex justify-center pt-8 bg-black/40 backdrop-blur-[2px]" onclick="onBackdropClick(event)">
+    <div class="w-[600px] max-w-[90vw] bg-[var(--surface-raised)] border border-[var(--border)] rounded-[var(--radius-lg)] glass-shadow overflow-hidden flex flex-col" onclick="event.stopPropagation()">
+      <!-- Input Header -->
+      <div class="flex items-center px-4 py-2.5 border-b border-[var(--border)]">
+        <svg class="w-4 h-4 text-[var(--accent)] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input id="cmdInput" type="text" placeholder="Type a command or search files (> for commands)..." value="> " class="w-full bg-transparent text-[13px] text-[var(--text-primary)] focus:outline-none font-sans" oninput="filterCommands(this.value)">
+        <span class="text-[10px] text-[var(--text-muted)] font-code px-1.5 py-0.5 bg-[var(--bg-app)] rounded border border-[var(--border)]">ESC</span>
+      </div>
+
+      <!-- Filtered List -->
+      <div id="cmdList" class="max-h-[320px] overflow-y-auto py-1">
+        
+        <div onclick="executeCommand('scan_start')" class="cmd-item flex items-center justify-between px-4 py-2 hover:bg-[var(--hover)] bg-[var(--selected-focused)] cursor-pointer text-[13px] group border-l-2 border-[var(--accent)]">
+          <div class="flex items-center gap-2.5">
+            <span class="text-[var(--accent)] font-semibold">Scan:</span>
+            <span class="text-[var(--text-primary)]">Start Port & Service Discovery Scan</span>
+          </div>
+          <span class="text-[11px] text-[var(--text-muted)] font-code">Ctrl+Shift+S</span>
+        </div>
+
+        <div onclick="executeCommand('scan_stop')" class="cmd-item flex items-center justify-between px-4 py-2 hover:bg-[var(--hover)] cursor-pointer text-[13px] group border-l-2 border-transparent">
+          <div class="flex items-center gap-2.5">
+            <span class="text-[var(--accent)] font-semibold">Scan:</span>
+            <span class="text-[var(--text-primary)]">Stop Active Engagement Sniffer</span>
+          </div>
+          <span class="text-[11px] text-[var(--text-muted)] font-code">Ctrl+Alt+X</span>
+        </div>
+
+        <div onclick="executeCommand('target_add')" class="cmd-item flex items-center justify-between px-4 py-2 hover:bg-[var(--hover)] cursor-pointer text-[13px] group border-l-2 border-transparent">
+          <div class="flex items-center gap-2.5">
+            <span class="text-[#22C55E] font-semibold">Target:</span>
+            <span class="text-[var(--text-primary)]">Add Host to Scope (CIDR or FQDN)</span>
+          </div>
+          <span class="text-[11px] text-[var(--text-muted)] font-code">Ctrl+T</span>
+        </div>
+
+        <div onclick="executeCommand('report_pdf')" class="cmd-item flex items-center justify-between px-4 py-2 hover:bg-[var(--hover)] cursor-pointer text-[13px] group border-l-2 border-transparent">
+          <div class="flex items-center gap-2.5">
+            <span class="text-[var(--text-secondary)] font-semibold">Report:</span>
+            <span class="text-[var(--text-primary)]">Export PDF Executive Vulnerability Report</span>
+          </div>
+          <span class="text-[11px] text-[var(--text-muted)] font-code">Ctrl+E</span>
+        </div>
+
+        <div onclick="executeCommand('view_terminal')" class="cmd-item flex items-center justify-between px-4 py-2 hover:bg-[var(--hover)] cursor-pointer text-[13px] group border-l-2 border-transparent">
+          <div class="flex items-center gap-2.5">
+            <span class="text-[var(--text-secondary)] font-semibold">View:</span>
+            <span class="text-[var(--text-primary)]">Toggle Integrated Terminal</span>
+          </div>
+          <span class="text-[11px] text-[var(--text-muted)] font-code">Ctrl+`</span>
+        </div>
+
+      </div>
+
+      <!-- Command Palette Footer -->
+      <div class="px-4 py-1.5 bg-[var(--bg-app)] border-t border-[var(--border)] flex items-center justify-between text-[11px] text-[var(--text-muted)]">
+        <span>SentinelCode Quick Actions</span>
+        <span>Navigation: ↑ ↓ • Select: ↵</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. NOTIFICATION TOAST (Bottom Right) -->
+  <div id="notificationToast" class="fixed bottom-10 right-4 w-[360px] bg-[var(--surface-raised)] border border-[var(--border-strong)] rounded-[var(--radius-lg)] glass-shadow p-3.5 z-[90] flex items-start gap-3 transition-all duration-300">
+    <div class="w-8 h-8 rounded-full bg-[var(--severity-warn-bg)] border border-[var(--severity-warn-border)] flex items-center justify-center text-[var(--severity-warn)] shrink-0">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+    </div>
+    <div class="flex-1 text-[12px]">
+      <div class="font-semibold text-[var(--text-primary)] flex items-center justify-between">
+        <span>Vulnerability Detected</span>
+        <button onclick="dismissToast()" class="text-[var(--text-muted)] hover:text-white">✕</button>
+      </div>
+      <p class="text-[var(--text-secondary)] mt-1 leading-snug">
+        SAST Analyzer flagged 1 critical stack pointer in <code class="font-code text-[var(--syn-string)]">buffer_overflow.py:17</code>.
+      </p>
+      <div class="flex items-center gap-2 mt-2.5">
+        <button onclick="switchEditorTab('code'); dismissToast();" class="px-2 py-1 bg-[var(--accent)] hover:bg-blue-600 text-white rounded-[var(--radius-sm)] text-[11px] font-medium">Inspect in Editor</button>
+        <button onclick="dismissToast()" class="px-2 py-1 bg-[var(--hover)] text-[var(--text-secondary)] hover:text-white rounded-[var(--radius-sm)] text-[11px]">Ignore</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT CONTROLLERS & INTERACTIONS -->
+  <script>
+    // State Tracking
+    let sideBarVisible = true;
+    let panelVisible = true;
+    let panelMaximized = false;
+
+    // Side Bar Resizing
+    const sideBar = document.getElementById('sideBar');
+    const sideBarResizer = document.getElementById('sideBarResizer');
+    let isResizingSideBar = false;
+
+    sideBarResizer.addEventListener('mousedown', (e) => {
+      isResizingSideBar = true;
+      document.body.style.cursor = 'ew-resize';
+    });
+
+    // Panel Resizing
+    const bottomPanel = document.getElementById('bottomPanel');
+    const panelResizer = document.getElementById('panelResizer');
+    let isResizingPanel = false;
+
+    panelResizer.addEventListener('mousedown', (e) => {
+      isResizingPanel = true;
+      document.body.style.cursor = 'ns-resize';
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (isResizingSideBar) {
+        const newWidth = Math.max(180, Math.min(500, e.clientX - 48));
+        sideBar.style.width = newWidth + 'px';
+      }
+      if (isResizingPanel) {
+        const newHeight = Math.max(120, Math.min(600, window.innerHeight - e.clientY - 24));
+        bottomPanel.style.height = newHeight + 'px';
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isResizingSideBar || isResizingPanel) {
+        isResizingSideBar = false;
+        isResizingPanel = false;
+        document.body.style.cursor = 'default';
+      }
+    });
+
+    // Toggle Side Bar
+    function toggleSideBar() {
+      sideBarVisible = !sideBarVisible;
+      sideBar.style.display = sideBarVisible ? 'flex' : 'none';
+    }
+
+    // Toggle Bottom Panel
+    function togglePanel(forced) {
+      panelVisible = typeof forced === 'boolean' ? forced : !panelVisible;
+      bottomPanel.style.display = panelVisible ? 'flex' : 'none';
+    }
+
+    function togglePanelMaximize() {
+      panelMaximized = !panelMaximized;
+      bottomPanel.style.height = panelMaximized ? '75%' : '240px';
+    }
+
+    // Switch Activity Bar Tabs
+    function switchActivity(actId) {
+      document.querySelectorAll('.activity-btn').forEach(btn => {
+        btn.classList.remove('bg-[var(--hover)]', 'text-[var(--text-primary)]');
+        btn.classList.add('text-[var(--text-muted)]');
+        const ind = btn.querySelector('.active-indicator');
+        if (ind) ind.classList.add('hidden');
+      });
+
+      const activeBtn = document.getElementById('act-' + actId);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-[var(--hover)]', 'text-[var(--text-primary)]');
+        activeBtn.classList.remove('text-[var(--text-muted)]');
+        const ind = activeBtn.querySelector('.active-indicator');
+        if (ind) ind.classList.remove('hidden');
+      }
+
+      const titles = {
+        'explorer': 'EXPLORER',
+        'search': 'SEARCH',
+        'git': 'SOURCE CONTROL',
+        'debug': 'RUN & DEBUG',
+        'scans': 'SECURITY SCANS',
+        'vulns': 'VULNERABILITY SAST',
+        'net': 'TARGET MAP'
+      };
+      document.getElementById('sideBarTitle').innerText = titles[actId] || 'EXPLORER';
+      if (!sideBarVisible) toggleSideBar();
+    }
+
+    // Tree Collapse
+    function toggleTreeSection(treeId) {
+      const el = document.getElementById(treeId);
+      const chev = document.getElementById('chevron-' + treeId);
+      if (el.classList.contains('hidden')) {
+        el.classList.remove('hidden');
+        chev.classList.add('rotate-90');
+      } else {
+        el.classList.add('hidden');
+        chev.classList.remove('rotate-90');
+      }
+    }
+
+    function toggleSubFolder(folderId) {
+      const el = document.getElementById(folderId);
+      const chev = document.getElementById('chev-' + folderId);
+      if (el.classList.contains('hidden')) {
+        el.classList.remove('hidden');
+        chev.classList.add('rotate-90');
+      } else {
+        el.classList.add('hidden');
+        chev.classList.remove('rotate-90');
+      }
+    }
+
+    // Switch Editor Tab (Code vs Dashboard vs Notes)
+    function switchEditorTab(viewType) {
+      const tabCode = document.getElementById('tab-buffer_overflow');
+      const tabDash = document.getElementById('tab-dashboard');
+      const viewCode = document.getElementById('view-code-editor');
+      const viewDash = document.getElementById('view-findings-dashboard');
+
+      if (viewType === 'dashboard') {
+        viewCode.classList.add('hidden');
+        viewDash.classList.remove('hidden');
+
+        tabDash.classList.add('bg-[var(--surface)]', 'border-t-2', 'border-[var(--accent)]', 'text-[var(--text-primary)]');
+        tabDash.classList.remove('bg-transparent', 'text-[var(--text-secondary)]');
+
+        tabCode.classList.remove('bg-[var(--surface)]', 'border-t-2', 'border-[var(--accent)]', 'text-[var(--text-primary)]');
+        tabCode.classList.add('bg-transparent', 'text-[var(--text-secondary)]');
+      } else {
+        viewCode.classList.remove('hidden');
+        viewDash.classList.add('hidden');
+
+        tabCode.classList.add('bg-[var(--surface)]', 'border-t-2', 'border-[var(--accent)]', 'text-[var(--text-primary)]');
+        tabCode.classList.remove('bg-transparent', 'text-[var(--text-secondary)]');
+
+        tabDash.classList.remove('bg-[var(--surface)]', 'border-t-2', 'border-[var(--accent)]', 'text-[var(--text-primary)]');
+        tabDash.classList.add('bg-transparent', 'text-[var(--text-secondary)]');
+      }
+    }
+
+    function openTab(name) {
+      if (name === 'findings_dashboard') {
+        switchEditorTab('dashboard');
+      } else {
+        switchEditorTab('code');
+      }
+    }
+
+    // Panel Tabs
+    function switchPanelTab(tabName) {
+      ['findings', 'terminal', 'traffic', 'output'].forEach(t => {
+        const view = document.getElementById('pview-' + t);
+        const ind = document.getElementById('pind-' + t);
+        const btn = document.getElementById('ptab-' + t);
+        if (view) view.classList.add('hidden');
+        if (ind) ind.classList.add('hidden');
+        if (btn) btn.classList.remove('text-[var(--text-primary)]');
+      });
+
+      const activeView = document.getElementById('pview-' + tabName);
+      const activeInd = document.getElementById('pind-' + tabName);
+      const activeBtn = document.getElementById('ptab-' + tabName);
+      if (activeView) activeView.classList.remove('hidden');
+      if (activeInd) activeInd.classList.remove('hidden');
+      if (activeBtn) activeBtn.classList.add('text-[var(--text-primary)]');
+    }
+
+    // Command Palette
+    function toggleCommandPalette(show) {
+      const cp = document.getElementById('commandPalette');
+      if (show) {
+        cp.classList.remove('hidden');
+        const input = document.getElementById('cmdInput');
+        input.focus();
+        input.setSelectionRange(2, 2);
+      } else {
+        cp.classList.add('hidden');
+      }
+    }
+
+    function onBackdropClick(e) {
+      toggleCommandPalette(false);
+    }
+
+    function filterCommands(val) {
+      const items = document.querySelectorAll('.cmd-item');
+      const query = val.replace(/^>\s*/, '').toLowerCase();
+      items.forEach(item => {
+        const text = item.innerText.toLowerCase();
+        item.style.display = text.includes(query) ? 'flex' : 'none';
+      });
+    }
+
+    function executeCommand(action) {
+      toggleCommandPalette(false);
+      if (action === 'view_terminal') {
+        switchPanelTab('terminal');
+        togglePanel(true);
+      } else if (action === 'scan_start') {
+        alert('Sentinel Security Engine: Automated port discovery and exploit probing initiated against 192.168.1.105.');
+      } else if (action === 'report_pdf') {
+        alert('Compiling executive report with CVE-120 and CWE-287 SARIF artifacts...');
+      }
+    }
+
+    // Toast
+    function dismissToast() {
+      const toast = document.getElementById('notificationToast');
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(10px)';
+      setTimeout(() => toast.remove(), 300);
+    }
+
+    // Global Keybindings (Ctrl+B, Ctrl+J, Ctrl+P, Ctrl+Shift+P, Ctrl+`)
+    window.addEventListener('keydown', (e) => {
+      // Ctrl+B (Toggle Side Bar)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+        e.preventDefault();
+        toggleSideBar();
+      }
+      // Ctrl+J (Toggle Bottom Panel)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'j') {
+        e.preventDefault();
+        togglePanel();
+      }
+      // Ctrl+Shift+P or Ctrl+P (Command Palette)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        toggleCommandPalette(true);
+      }
+      // Ctrl+` (Focus Terminal)
+      if ((e.ctrlKey || e.metaKey) && e.key === '`') {
+        e.preventDefault();
+        switchPanelTab('terminal');
+        togglePanel(true);
+      }
+      // Escape (Close Command Palette)
+      if (e.key === 'Escape') {
+        toggleCommandPalette(false);
+      }
+    });
+  </script>
+</body>
+</html>

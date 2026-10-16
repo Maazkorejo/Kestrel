@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SentinelCode Studio | AI-Native Cybersecurity IDE</title>
+  <meta name="description" content="Deterministic DevSecOps IDE combining Python AST static analysis, NVIDIA Nemotron defensive remediation, and live Tavily threat intelligence.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --bg: #0B0B0D;
+      --surface: #111114;
+      --surface-raised: #17171B;
+      --border: #212126;
+      --border-strong: #2E2E36;
+      --accent: #3B82F6;
+    }
+    body {
+      background-color: var(--bg);
+      font-family: 'Inter', system-ui, sans-serif;
+      color: #F2F2F4;
+    }
+    .font-code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .glow-cyan {
+      box-shadow: 0 0 50px -10px rgba(56, 189, 248, 0.25);
+    }
+    .glow-blue {
+      box-shadow: 0 0 60px -15px rgba(59, 130, 246, 0.3);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white">
+
+  <!-- ==================== TOP NAVIGATION ==================== -->
+  <header class="sticky top-0 z-50 backdrop-blur-md bg-[#0B0B0D]/85 border-b border-[#212126] px-6 py-3.5">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400">
+          <i data-lucide="shield" class="w-5 h-5"></i>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-bold text-[15px] tracking-tight flex items-center gap-2">
+            SentinelCode Studio
+            <span class="px-2 py-0.5 text-[10px] font-mono bg-blue-950 text-blue-400 border border-blue-800 rounded-full">v1.0.0</span>
+          </span>
+          <span class="text-[11px] text-zinc-400 -mt-0.5">Nebius x NVIDIA Global AI Hackathon</span>
+        </div>
+      </div>
+
+      <nav class="hidden md:flex items-center gap-6 text-[13px] text-zinc-300 font-medium">
+        <a href="#features" class="hover:text-white transition">Features</a>
+        <a href="#architecture" class="hover:text-white transition">Architecture</a>
+        <a href="#quickstart" class="hover:text-white transition">Quickstart</a>
+        <a href="https://github.com/Maazkorejo/Hackatgon-project" target="_blank" class="hover:text-white transition flex items-center gap-1.5">
+          <i data-lucide="github" class="w-4 h-4"></i>
+          <span>GitHub</span>
+        </a>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <a href="https://github.com/Maazkorejo/Hackatgon-project/releases/latest" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-[13px] font-semibold transition flex items-center gap-2 shadow-lg shadow-blue-600/20">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          <span>Download App</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== HERO SECTION ==================== -->
+  <section class="relative pt-20 pb-16 px-6 overflow-hidden">
+    <div class="absolute inset-0 bg-radial from-blue-900/10 via-transparent to-transparent pointer-events-none"></div>
+
+    <div class="max-w-5xl mx-auto text-center space-y-6">
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#17171B] border border-[#2E2E36] text-[12px] text-zinc-300">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>AI-Native Cybersecurity IDE for Modern DevSecOps</span>
+      </div>
+
+      <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.15] text-white">
+        Secure Code Faster with <br>
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-emerald-400">
+          Deterministic AST & NVIDIA Nemotron
+        </span>
+      </h1>
+
+      <p class="max-w-2xl mx-auto text-lg text-zinc-400 leading-relaxed">
+        SentinelCode Studio blends deep syntactic static analysis with generative AI reasoning. Catch SQL injection, remote command execution, and container breakout vectors in real time, backed by live Tavily threat advisories and one-click defensive patching.
+      </p>
+
+      <div class="flex flex-wrap items-center justify-center gap-4 pt-4">
+        <a href="https://github.com/Maazkorejo/Hackatgon-project/releases/latest" target="_blank" class="px-6 py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-[14px] font-bold shadow-xl shadow-blue-600/25 transition flex items-center gap-2.5">
+          <i data-lucide="download" class="w-5 h-5"></i>
+          <span>Download for Windows (.exe)</span>
+        </a>
+        <a href="https://github.com/Maazkorejo/Hackatgon-project" target="_blank" class="px-6 py-3.5 bg-[#17171B] hover:bg-[#1E1E24] text-white border border-[#2E2E36] rounded-xl text-[14px] font-semibold transition flex items-center gap-2">
+          <i data-lucide="github" class="w-5 h-5"></i>
+          <span>View Source on GitHub</span>
+        </a>
+      </div>
+
+      <!-- Live Statistics Banner -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto pt-10 text-left">
+        <div class="p-4 bg-[#111114] border border-[#212126] rounded-xl">
+          <div class="text-[11px] font-mono uppercase text-zinc-500">Scan Latency</div>
+          <div class="text-2xl font-bold text-emerald-400 mt-1">&lt; 100 ms</div>
+          <div class="text-[11.5px] text-zinc-400">Deterministic AST parser</div>
+        </div>
+        <div class="p-4 bg-[#111114] border border-[#212126] rounded-xl">
+          <div class="text-[11px] font-mono uppercase text-zinc-500">AI Model</div>
+          <div class="text-2xl font-bold text-cyan-400 mt-1">Nemotron 3.5</div>
+          <div class="text-[11.5px] text-zinc-400">Defensive patch synthesis</div>
+        </div>
+        <div class="p-4 bg-[#111114] border border-[#212126] rounded-xl">
+          <div class="text-[11px] font-mono uppercase text-zinc-500">Threat Grounding</div>
+          <div class="text-2xl font-bold text-blue-400 mt-1">Tavily Search</div>
+          <div class="text-[11.5px] text-zinc-400">Real-time CVE advisories</div>
+        </div>
+        <div class="p-4 bg-[#111114] border border-[#212126] rounded-xl">
+          <div class="text-[11px] font-mono uppercase text-zinc-500">Local Persistence</div>
+          <div class="text-2xl font-bold text-purple-400 mt-1">SQLite Cache</div>
+          <div class="text-[11.5px] text-zinc-400">Zero-retention air-gap mode</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== KEY FEATURES GRID ==================== -->
+  <section id="features" class="py-20 px-6 border-t border-[#212126] bg-[#0E0E11]">
+    <div class="max-w-7xl mx-auto space-y-12">
+      <div class="text-center space-y-3">
+        <h2 class="text-3xl font-bold text-white tracking-tight">Enterprise Cybersecurity Capabilities</h2>
+        <p class="text-zinc-400 max-w-xl mx-auto text-[14px]">
+          Engineered for software engineers, security researchers, and DevSecOps professionals.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Feature 1 -->
+        <div class="p-6 bg-[#111114] border border-[#212126] rounded-2xl space-y-3 hover:border-blue-500/40 transition">
+          <div class="w-10 h-10 rounded-xl bg-blue-600/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
+            <i data-lucide="code-2" class="w-5 h-5"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white">Deterministic AST Analysis</h3>
+          <p class="text-zinc-400 text-[13px] leading-relaxed">
+            Eliminates AI hallucinations by identifying flaws syntactically first. Detects SQL injection, command execution, hardcoded AWS/JWT secrets, and unpinned Dockerfile containers in memory.
+          </p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="p-6 bg-[#111114] border border-[#212126] rounded-2xl space-y-3 hover:border-cyan-500/40 transition">
+          <div class="w-10 h-10 rounded-xl bg-cyan-600/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+            <i data-lucide="sparkles" class="w-5 h-5"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white">NVIDIA Nemotron Patching</h3>
+          <p class="text-zinc-400 text-[13px] leading-relaxed">
+            Synthesizes unified Git diffs with root cause explanations and defensive parameterization. One-click application updates the active editor model instantly.
+          </p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="p-6 bg-[#111114] border border-[#212126] rounded-2xl space-y-3 hover:border-emerald-500/40 transition">
+          <div class="w-10 h-10 rounded-xl bg-emerald-600/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <i data-lucide="globe" class="w-5 h-5"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white">Live Tavily Threat Intelligence</h3>
+          <p class="text-zinc-400 text-[13px] leading-relaxed">
+            Queries live CVE bulletins, CVSS scores, and official vendor mitigations directly from NVD, MITRE, and GitHub Security Advisories within 1.5 seconds.
+          </p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="p-6 bg-[#111114] border border-[#212126] rounded-2xl space-y-3 hover:border-purple-500/40 transition">
+          <div class="w-10 h-10 rounded-xl bg-purple-600/15 border border-purple-500/30 flex items-center justify-center text-purple-400">
+            <i data-lucide="folder-git-2" class="w-5 h-5"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white">Whole-Repository & SBOM Audit</h3>
+          <p class="text-zinc-400 text-[13px] leading-relaxed">
+            Recursively scans entire workspaces and audits manifest files (requirements.txt, package.json) for supply-chain vulnerabilities, computing an aggregate security score.
+          </p>
+        </div>
+
+        <!-- Feature 5 -->
+        <div class="p-6 bg-[#111114] border border-[#212126] rounded-2xl space-y-3 hover:border-yellow-500/40 transition">
+          <div class="w-10 h-10 rounded-xl bg-yellow-600/15 border border-yellow-500/30 flex items-center justify-center text-yellow-400">
+            <i data-lucide="file-check-2" class="w-5 h-5"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white">OASIS SARIF 2.1.0 Export</h3>
+          <p class="text-zinc-400 text-[13px] leading-relaxed">
+            Exports standard SARIF reports that integrate directly with GitHub Code Scanning alerts, GitLab CI SAST, and DevSecOps pipelines.
+          </p>
+        </div>
+
+        <!-- Feature 6 -->
+        <div class="p-6 bg-[#111114] border border-[#212126] rounded-2xl space-y-3 hover:border-red-500/40 transition">
+          <div class="w-10 h-10 rounded-xl bg-red-600/15 border border-red-500/30 flex items-center justify-center text-red-400">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white">Zero-Retention Local Cache</h3>
+          <p class="text-zinc-400 text-[13px] leading-relaxed">
+            Embedded SQLite database caches AST remediation hashes and threat records locally. Zero telemetry leaks and one-click cache purge for air-gapped environments.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== QUICKSTART & CLI ==================== -->
+  <section id="quickstart" class="py-20 px-6 border-t border-[#212126]">
+    <div class="max-w-4xl mx-auto space-y-8">
+      <div class="text-center space-y-2">
+        <h2 class="text-3xl font-bold text-white">Simple to Run Locally or in CI/CD</h2>
+        <p class="text-zinc-400 text-[14px]">Choose between the interactive desktop IDE or the automated CLI.</p>
+      </div>
+
+      <div class="space-y-4">
+        <div class="p-5 bg-[#111114] border border-[#212126] rounded-2xl space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-white text-[14px] flex items-center gap-2">
+              <i data-lucide="terminal" class="w-4 h-4 text-emerald-400"></i>
+              <span>Option A: Run Headless DevSecOps CLI in Terminal</span>
+            </span>
+            <span class="text-[11px] font-mono text-zinc-500">CI / CD</span>
+          </div>
+          <pre class="p-4 bg-[#0B0B0D] border border-[#212126] rounded-xl font-code text-[12.5px] text-zinc-300 overflow-x-auto"><code># Run whole-repository scan and output SARIF
+python secstudio_cli.py scan . --fail-on=HIGH --sarif=secstudio-results.sarif</code></pre>
+        </div>
+
+        <div class="p-5 bg-[#111114] border border-[#212126] rounded-2xl space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-white text-[14px] flex items-center gap-2">
+              <i data-lucide="monitor" class="w-4 h-4 text-cyan-400"></i>
+              <span>Option B: Launch Native Desktop IDE Window</span>
+            </span>
+            <span class="text-[11px] font-mono text-zinc-500">Desktop</span>
+          </div>
+          <pre class="p-4 bg-[#0B0B0D] border border-[#212126] rounded-xl font-code text-[12.5px] text-zinc-300 overflow-x-auto"><code># Start Electron desktop app
+npm start</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="mt-auto border-t border-[#212126] py-8 px-6 bg-[#0B0B0D] text-[12px] text-zinc-500">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="font-bold text-zinc-300">SentinelCode Studio</span>
+        <span>•</span>
+        <span>Built for Nebius x NVIDIA Global AI Hackathon 2026</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="https://github.com/Maazkorejo/Hackatgon-project" target="_blank" class="hover:text-zinc-300 transition">GitHub</a>
+        <a href="https://nebiusglobalaihackathon.devpost.com/" target="_blank" class="hover:text-zinc-300 transition">Devpost</a>
+        <a href="https://openrouter.ai/models/nvidia/nemotron-3.5-lightning:free" target="_blank" class="hover:text-zinc-300 transition">NVIDIA Nemotron</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>
