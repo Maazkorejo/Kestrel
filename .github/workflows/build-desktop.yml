@@ -1,0 +1,71 @@
+name: Build & Publish Desktop Installer
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-and-release:
+    name: Package Windows Desktop App
+    runs-on: windows-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python Dependencies & PyInstaller
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller
+
+      - name: Compile Standalone Backend Engine (secstudio-core.exe)
+        run: |
+          pyinstaller secstudio_core.spec --distpath dist_backend --noconfirm
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Node Dependencies
+        run: |
+          npm ci || npm install
+          npm install -g electron-builder
+
+      - name: Package Standalone Electron NSIS Installer
+        run: |
+          npx electron-builder --win nsis
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate SHA-256 Checksums
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path dist_installer -Filter *.exe | ForEach-Object {
+            $hash = (Get-FileHash -Path $_.FullName -Algorithm SHA256).Hash
+            "$hash  $($_.Name)" | Out-File -FilePath "dist_installer/$($_.Name).sha256" -Encoding ascii
+          }
+
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          name: SentinelCode Studio Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            dist_installer/*.exe
+            dist_installer/*.sha256
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
