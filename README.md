@@ -1,8 +1,10 @@
 # Kestrel AI - Cybersecurity IDE & DevSecOps Engine
 
 > **Hunt flaws. Ship armor.**  
-> An AI-native cybersecurity IDE combining deterministic AST static analysis, real-time Tavily threat intelligence, and NVIDIA Nemotron defensive patch synthesis into an integrated desktop and web workspace.
+> An AI-native cybersecurity IDE combining deterministic AST static analysis, real-time Tavily threat intelligence, and NVIDIA Nemotron defensive patch synthesis into an integrated desktop and web workspace.  
+> **Official Website:** [https://kestrel-website-sigma.vercel.app/](https://kestrel-website-sigma.vercel.app/)
 
+[![Website](https://img.shields.io/badge/website-live%20on%20vercel-black.svg?logo=vercel)](https://kestrel-website-sigma.vercel.app/)
 [![Tests](https://img.shields.io/badge/tests-40%2F40%20passing-brightgreen.svg)](#verification--test-suite)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](#backend-requirements)
 [![FastAPI](https://img.shields.io/badge/backend-FastAPI-009688.svg)](#backend-architecture)
@@ -18,6 +20,7 @@
 
 ## Download Kestrel AI
 
+[![Live Website](https://img.shields.io/badge/Official%20Website-kestrel--website--sigma.vercel.app-black?style=for-the-badge&logo=vercel)](https://kestrel-website-sigma.vercel.app/)
 [![Download for Windows](https://img.shields.io/badge/Download-Kestrel%20Installer%20(.exe)-blue?style=for-the-badge&logo=windows)](https://github.com/Maazkorejo/Kestrel/releases/latest/download/Kestrel-Setup-1.0.0.exe)
 [![Download Portable Edition](https://img.shields.io/badge/Download-Portable%20Edition-green?style=for-the-badge&logo=windows)](https://github.com/Maazkorejo/Kestrel/releases/latest/download/Kestrel-1.0.0.exe)
 [![GitHub Releases](https://img.shields.io/badge/All-Releases-orange?style=for-the-badge&logo=github)](https://github.com/Maazkorejo/Kestrel/releases)
@@ -26,6 +29,7 @@
 
 | Edition | Format | Target Platform | Description |
 |---|---|---|---|
+| **Official Website** | Web App | Modern Browsers | Live platform showcase, interactive tour, and documentation: [kestrel-website-sigma.vercel.app](https://kestrel-website-sigma.vercel.app/) |
 | **Windows Setup** *(Recommended)* | `.exe` (NSIS) | Windows 10 / 11 (64-bit) | Standard installer wizard with automated Desktop icon and Start Menu shortcuts. |
 | **Windows Portable** | `.exe` | Windows 10 / 11 (64-bit) | Zero-install standalone executable. Double-click and run immediately without admin rights. |
 | **PowerShell One-Liner** | Script | Windows PowerShell | Run in terminal: `irm https://raw.githubusercontent.com/Maazkorejo/Kestrel/main/install.ps1 \| iex` |
