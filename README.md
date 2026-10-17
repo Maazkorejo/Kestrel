@@ -10,6 +10,10 @@
 [![NVIDIA Nemotron](https://img.shields.io/badge/ai-NVIDIA%20Nemotron-76B900.svg)](#ai-reasoning-engine)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
+<p align="center">
+  <img src="docs/images/kestrel_ide_workspace.png" alt="Kestrel AI Studio Workspace" width="920" />
+</p>
+
 ---
 
 ## Download Kestrel AI
@@ -36,6 +40,45 @@
 Modern software development and cybersecurity workflows are disjointed. Developers write code in IDEs, run disparate CLI scanners in separate terminal sessions, manually search CVE databases across browser tabs, and paste sensitive code snippets into generic AI chatbots that hallucinate false vulnerabilities.
 
 **Kestrel AI** eliminates this friction. Inspired by VS Code and built for DevSecOps, Kestrel provides an end-to-end cybersecurity workspace where source code is audited by deterministic AST parsers, enriched with live threat intelligence, analyzed by NVIDIA Nemotron, and remediated with verified unified git diffs applied directly to disk with a single click.
+
+---
+
+## Product Showcase
+
+### 1. Monaco IDE Workspace & Active Guarding
+> Zero-latency local IDE environment featuring Monaco editor, file explorer, integrated terminal, and active workspace protection.
+
+<p align="center">
+  <img src="docs/images/kestrel_ide_workspace.png" alt="Kestrel IDE Workspace" width="900" />
+</p>
+
+### 2. Deterministic AST Security Audit & Event Stream
+> Detects critical vulnerabilities like CWE-489 (Flask Debug Mode) directly in volatile memory with 0% LLM hallucination, streaming real-time workspace audit events.
+
+<p align="center">
+  <img src="docs/images/kestrel_security_audit.png" alt="AST Security Audit" width="900" />
+</p>
+
+### 3. AI Vulnerability Deep-Dive & Root Cause Analysis
+> Context-aware assistant powered by NVIDIA Nemotron 3.5 diagnosing execution sinks, untrusted input paths, and generating verifiable defensive patches for high-severity flaws like CWE-78.
+
+<p align="center">
+  <img src="docs/images/kestrel_ai_chat.png" alt="AI Vulnerability Chat" width="460" />
+</p>
+
+### 4. Side-by-Side Unified Git Diff Review
+> Review proposed Nemotron defensive patches with clear line-by-line highlights before committing directly to disk with one click.
+
+<p align="center">
+  <img src="docs/images/kestrel_patch_diff.png" alt="Nemotron Patch Diff" width="820" />
+</p>
+
+### 5. Live Threat Intelligence Grounding & Exploit Simulation
+> Queries Tavily in real time against authoritative NVD sources yielding live CVSS 9.8 severity metrics, known exploit vectors, vendor mitigations, and attack simulation triggers.
+
+<p align="center">
+  <img src="docs/images/kestrel_threat_intel.png" alt="Threat Intelligence" width="820" />
+</p>
 
 ---
 
